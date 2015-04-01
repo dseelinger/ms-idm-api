@@ -38,11 +38,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="IdmNet">
-      <HintPath>..\..\..\ms-idm-net\IdmNet\IdmNet\bin\Debug\IdmNet.dll</HintPath>
+    <Reference Include="IdmNet, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\IdmNet.1.0.1\lib\net45\IdmNet.dll</HintPath>
     </Reference>
-    <Reference Include="IdmService">
-      <HintPath>..\packages\IdmService.1.0.1\lib\net45\IdmService.dll</HintPath>
+    <Reference Include="IdmService, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\IdmNet.1.0.1\lib\net45\IdmService.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Azure.AppService.ApiApps.Service">
