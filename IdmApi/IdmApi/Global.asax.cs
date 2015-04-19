@@ -1,14 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿using System.Web;
 using System.Web.Http;
-using System.Web.Routing;
 
 namespace IdmApi
 {
-    public class WebApiApplication : System.Web.HttpApplication
+    /// <summary>
+    /// Web App
+    /// </summary>
+    public class WebApiApplication : HttpApplication
     {
+        /// <summary>
+        /// Startup method
+        /// </summary>
         protected void Application_Start()
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);

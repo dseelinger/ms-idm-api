@@ -8,9 +8,15 @@ using Newtonsoft.Json.Linq;
 
 namespace IdmApi.Controllers
 {
+    /// <summary>
+    /// Resource Controller
+    /// </summary>
     public class ResourcesController : ApiController
     {
-        private readonly IRepository _repo;
+        /// <summary>
+        /// Repository
+        /// </summary>
+        public IRepository Repo { get; set; }
 
         /// <summary>
         /// Resources Controller constructor
@@ -18,8 +24,9 @@ namespace IdmApi.Controllers
         /// <param name="repo"></param>
         public ResourcesController(IRepository repo)
         {
-            _repo = repo;
+            Repo = repo;
         }
+
 
         /// <summary>
         /// Get a resource by its ID
@@ -37,7 +44,7 @@ namespace IdmApi.Controllers
             string[] attributes = null;
             if (@select != null)
                 attributes = RemoveAllWhitespace(@select).Split(',');
-            return await _repo.GetById(id, attributes);
+            return await Repo.GetById(id, attributes);
         }
 
         /// <summary>
@@ -49,7 +56,7 @@ namespace IdmApi.Controllers
         public async Task<object> GetAttributeById(string id, string attribute)
         {
 
-            var resource = await _repo.GetById(id, new[] { attribute });
+            var resource = await Repo.GetById(id, new[] { attribute });
 
             var attr = resource.GetAttr(attribute);
             if (attr != null)
@@ -74,7 +81,7 @@ namespace IdmApi.Controllers
         public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string select = null)
         {
             var attributes = (select == null) ? null : select.Split(',');
-            return await _repo.GetByFilter(filter, attributes);
+            return await Repo.GetByFilter(filter, attributes);
         }
 
 

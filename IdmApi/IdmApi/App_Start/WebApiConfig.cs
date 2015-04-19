@@ -6,8 +6,15 @@ using Microsoft.Practices.Unity;
 
 namespace IdmApi
 {
+    /// <summary>
+    /// Web API configuration
+    /// </summary>
     public static class WebApiConfig
     {
+        /// <summary>
+        /// Register
+        /// </summary>
+        /// <param name="config">config</param>
         public static void Register(HttpConfiguration config)
         {
             // Web API configuration and services
