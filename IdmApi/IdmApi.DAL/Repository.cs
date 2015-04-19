@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using IdmNet;
+using IdmNet.Models;
 
-namespace IdmApi.Models
+namespace IdmApi.DAL
 {
     public class Repository : IRepository
     {

@@ -1,9 +1,9 @@
 ﻿#pragma warning disable 1591
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using IdmNet;
+using IdmNet.Models;
 
-namespace IdmApi.Models
+namespace IdmApi.DAL
 {
     public interface IRepository
     {

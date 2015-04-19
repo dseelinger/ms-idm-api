@@ -1,21 +1,25 @@
-﻿using System.IO;
+using System.IO;
 using System.Reflection;
 using System.Web.Http;
-using Swashbuckle.Application;
 using WebActivatorEx;
 using IdmApi;
+using Swashbuckle.Application;
 
 [assembly: PreApplicationStartMethod(typeof(SwaggerConfig), "Register")]
 
 namespace IdmApi
 {
+    /// <summary>
+    /// Swagger class
+    /// </summary>
     public class SwaggerConfig
     {
+        /// <summary>
+        /// Register
+        /// </summary>
         public static void Register()
         {
-            var thisAssembly = typeof(SwaggerConfig).Assembly;
-
-            GlobalConfiguration.Configuration
+            GlobalConfiguration.Configuration 
                 .EnableSwagger(c =>
                     {
                         // By default, the service root url is inferred from the request used to access the docs.
@@ -155,32 +159,34 @@ namespace IdmApi
                         // those comments into the generated docs and UI. You can enable this by providing the path to one or
                         // more Xml comment files.
                         //
-                        const string xmlCommentFileName = @"\IdmApi.XML";
-                        var xmlCommentFilePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) +
-                                                 xmlCommentFileName;
-                        if (!File.Exists(xmlCommentFilePath))
+                        const string apiComments = @"\IdmApi.XML";
+                        const string netComments = @"\IdmNet.XML";
+                        var apiXmlPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + apiComments;
+                        var netXmlPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + netComments;
+                        if (!File.Exists(apiXmlPath))
                         {
-                            xmlCommentFilePath = @"D:\git\ms-idm-api\IdmApi\IdmApi\bin" + xmlCommentFileName;
+                            apiXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\bin" + apiComments;
+                            netXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\" + netComments;
                         }
-                        if (!File.Exists(xmlCommentFilePath))
+                        if (!File.Exists(apiXmlPath))
                         {
-                            xmlCommentFilePath = @"D:\home\site\wwwroot\bin" + xmlCommentFileName;
+                            apiXmlPath = @"D:\home\site\wwwroot\bin" + apiComments;
+                            netXmlPath = @"D:\home\site\wwwroot\" + netComments;
                         }
-                        if (File.Exists(xmlCommentFilePath))
+                        if (File.Exists(apiXmlPath))
                         {
-                            c.IncludeXmlComments(xmlCommentFilePath);
+                            c.IncludeXmlComments(apiXmlPath);
+                            c.IncludeXmlComments(netXmlPath);
                         }
-
                         // In contrast to WebApi, Swagger 2.0 does not include the query string component when mapping a URL
                         // to an action. As a result, Swashbuckle will raise an exception if it encounters multiple actions
                         // with the same path (sans query string) and HTTP method. You can workaround this by providing a
                         // custom strategy to pick a winner or merge the descriptions for the purposes of the Swagger docs 
                         //
                         //c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                        // ***** Uncomment the following to enable the swagger UI *****
-                            })
-                        .EnableSwaggerUi(c =>
-                            {
+                    })
+                .EnableSwaggerUi(c =>
+                    {
                         // Use the "InjectStylesheet" option to enrich the UI with one or more additional CSS stylesheets.
                         // The file must be included in your project as an "Embedded Resource", and then the resource's
                         // "Logical Name" is passed to the method as shown below.
@@ -198,6 +204,12 @@ namespace IdmApi
                         // for example 0 and 1.
                         //
                         //c.BooleanValues(new[] { "0", "1" });
+
+                        // By default, swagger-ui will validate specs against swagger.io's online validator and display the result
+                        // in a badge at the bottom of the page. Use these options to set a different validator URL or to disable the
+                        // feature entirely.
+                        //c.SetValidatorUrl("http://localhost/validator");
+                        //c.DisableValidator();
 
                         // Use this option to control how the Operation listing is displayed.
                         // It can be set to "None" (default), "List" (shows operations for each resource),
