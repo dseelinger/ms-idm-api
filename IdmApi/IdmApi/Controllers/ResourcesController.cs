@@ -99,6 +99,7 @@ namespace IdmApi.Controllers
         /// </summary>
         /// <param name="resource">New Identity Manager resource</param>
         /// <returns>HTTP Response 204 with Location Header and resulting resource with its ObjectID populated.</returns>
+        [Route("api/resources/")]
         public async Task<HttpResponseMessage> Post(IdmResource resource)
         {
             var resourceResult = await Repo.Post(resource);
@@ -107,6 +108,12 @@ namespace IdmApi.Controllers
             response.Headers.Location = new Uri(Request.RequestUri.OriginalString + "/api/resources/" + resourceResult.ObjectID);
 
             return response;
+        }
+
+        [Route("api/resources/{id}/{attribute}")]
+        public Task<HttpResponseMessage> PutAttribute(string id, string attribute, string attributeValue)
+        {
+            throw new NotImplementedException();
         }
     }
 }

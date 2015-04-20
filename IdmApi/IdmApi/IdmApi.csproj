@@ -38,12 +38,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="IdmNet, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IdmNet.1.0.4\lib\net45\IdmNet.dll</HintPath>
+    <Reference Include="IdmNet, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\IdmNet.1.0.5\lib\net45\IdmNet.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="IdmService, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\IdmNet.1.0.4\lib\net45\IdmService.dll</HintPath>
+      <HintPath>..\packages\IdmNet.1.0.5\lib\net45\IdmService.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Azure.AppService.ApiApps.Service, Version=0.9.35.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

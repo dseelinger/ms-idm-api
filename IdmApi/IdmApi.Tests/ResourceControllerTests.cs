@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Hosting;
@@ -126,7 +127,7 @@ namespace IdmApi.Tests
             var idmResource = new IdmResource
             {
                 Attributes =
-                    new List<IdmAttribute> {}
+                    new List<IdmAttribute>()
             };
             var repo = new StubIRepository
             {
@@ -146,8 +147,8 @@ namespace IdmApi.Tests
         {
             var resources = new List<IdmResource>
             {
-                new IdmResource {},
-                new IdmResource {}
+                new IdmResource(),
+                new IdmResource()
             };
             IEnumerable<IdmResource> res = resources;
 
@@ -177,8 +178,7 @@ namespace IdmApi.Tests
                 }
             };
 
-            var it = new ResourcesController(repo);
-            it.Request = new HttpRequestMessage();
+            var it = new ResourcesController(repo) {Request = new HttpRequestMessage()};
             it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
             it.Request.RequestUri = new Uri("http://myserver");
 
@@ -190,6 +190,74 @@ namespace IdmApi.Tests
             Assert.AreEqual("bar", resourceResult.ObjectID);
             Assert.AreEqual("http://myserver/api/resources/bar", result.Headers.Location.ToString());
         }
+
+        [TestMethod]
+        public async Task It_can_PutAttribute()
+        {
+            //[TestMethod]
+            //[TestCategory("Integration")]
+            //public async Task It_can_PutAttributeValueAsync_to_a_present_single_valued_attribute()
+            //{
+            //    await AssertReplaceOk("FirstName", "TestFirstName1", "TestFirstName2");
+            //}
+
+            //var it = IdmNetClientFactory.BuildClient();
+            //IdmResource testResource = await CreateTestPerson(it);
+
+            //try
+            //{
+            //    // Act
+            //    await it.ReplaceValueAsync(testResource.ObjectID, attrName, attrValue1);
+            //    await it.ReplaceValueAsync(testResource.ObjectID, attrName, attrValue2);
+
+            //    // Assert
+            //    var searchResult =
+            //        await
+            //            it.SearchAsync(new SearchCriteria
+            //            {
+            //                XPath = "/Person[ObjectID='" + testResource.ObjectID + "']",
+            //                Attributes = new[] { attrName }
+            //            });
+            //    Assert.AreEqual(attrValue2, searchResult.First().GetAttrValue(attrName));
+            //}
+            //finally
+            //{
+            //    // Afterwards
+            //    it.DeleteAsync(testResource.ObjectID);
+            //}
+
+
+
+            var repo = new StubIRepository
+            {
+                PutAttributeStringStringString = (objId, name, val) =>
+                {
+                    Assert.AreEqual("foo", objId);
+                    Assert.AreEqual("bar", name);
+                    Assert.AreEqual("bat", val);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+
+            HttpResponseMessage result = await it.PutAttribute("foo", "bar", "bat");
+
+            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+
+        }
+
+
+        // TODO 004: Put Attribute (Replace)
+        // TODO 003: Post Attribute (Add)
+        // TODO 002: Delete Attribute (Delete)
+        // TODO 001: Put Changes (batch update)
+        // TODO 000: Delete Resource
 
     }
 }

@@ -1,9 +1,11 @@
 ﻿#pragma warning disable 1591
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using IdmNet;
 using IdmNet.Models;
+// ReSharper disable InconsistentNaming
 
 namespace IdmApi.DAL
 {
@@ -34,6 +36,11 @@ namespace IdmApi.DAL
         {
             var result = await _idmNet.PostAsync(resource);
             return result;
+        }
+
+        public async Task<Message> PutAttribute(string objectID, string attrName, string attrValue)
+        {
+            return await _idmNet.ReplaceValueAsync(objectID, attrName, attrValue);
         }
     }
 }
