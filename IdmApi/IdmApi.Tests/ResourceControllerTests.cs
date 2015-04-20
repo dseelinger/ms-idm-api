@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using IdmApi.Controllers;
 using IdmApi.DAL.Fakes;
@@ -114,26 +115,48 @@ namespace IdmApi.Tests
             Assert.AreEqual("buz", result["bar"][1]);
         }
 
-        //[TestMethod]
-        //public async Task It_can_GetAttributeById_for_null_attributes()
-        //{
-        //    var idmResource = new IdmResource
-        //    {
-        //        Attributes =
-        //            new List<IdmAttribute> { new IdmAttribute { Name = "bar" } }
-        //    };
-        //    var repo = new StubIRepository
-        //    {
-        //        GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
-        //    };
+        [TestMethod]
+        public async Task It_can_GetAttributeById_for_null_attributes()
+        {
+            var idmResource = new IdmResource
+            {
+                Attributes =
+                    new List<IdmAttribute> {}
+            };
+            var repo = new StubIRepository
+            {
+                GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
+            };
 
-        //    var it = new ResourcesController(repo);
+            var it = new ResourcesController(repo);
 
-        //    var result = (JObject)await it.GetAttributeById("foo", "bar");
+            var result = (JObject)await it.GetAttributeById("foo", "bar");
 
-        //    Assert.IsNull(result["bar"]);
-        //}
+            Assert.IsNull(result);
+        }
 
+
+        [TestMethod]
+        public async Task It_can_GetByFilter()
+        {
+            var resources = new List<IdmResource>
+            {
+                new IdmResource {},
+                new IdmResource {}
+            };
+            IEnumerable<IdmResource> res = resources;
+
+            var repo = new StubIRepository
+            {
+                GetByFilterStringStringArray = (s, strings) => Task.FromResult(res)
+            };
+
+            var it = new ResourcesController(repo);
+
+            var result = await it.GetByFilter("foo", "bar");
+
+            Assert.AreEqual(2, result.Count());
+        }
 
     }
 }
