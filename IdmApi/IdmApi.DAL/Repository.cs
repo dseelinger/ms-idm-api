@@ -29,5 +29,11 @@ namespace IdmApi.DAL
             var searchResults = await _idmNet.SearchAsync(criteria);
             return searchResults;
         }
+
+        public async Task<IdmResource> Post(IdmResource resource)
+        {
+            var result = await _idmNet.PostAsync(resource);
+            return result;
+        }
     }
 }

@@ -9,5 +9,6 @@ namespace IdmApi.DAL
     {
         Task<IdmResource> GetById(string id, string[] attributes);
         Task<IEnumerable<IdmResource>> GetByFilter(string filter, string[] attributes);
+        Task<IdmResource> Post(IdmResource resource);
     }
 }

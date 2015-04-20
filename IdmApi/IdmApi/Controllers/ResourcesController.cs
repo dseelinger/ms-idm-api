@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -91,5 +94,19 @@ namespace IdmApi.Controllers
         }
 
 
+        /// <summary>
+        /// Create a new Resource object in Identity Manager
+        /// </summary>
+        /// <param name="resource">New Identity Manager resource</param>
+        /// <returns>HTTP Response 204 with Location Header and resulting resource with its ObjectID populated.</returns>
+        public async Task<HttpResponseMessage> Post(IdmResource resource)
+        {
+            var resourceResult = await Repo.Post(resource);
+
+            HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, resourceResult);
+            response.Headers.Location = new Uri(Request.RequestUri.OriginalString + "/api/resources/" + resourceResult.ObjectID);
+
+            return response;
+        }
     }
 }
