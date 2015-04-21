@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>IdmApi</name>
+    </assembly>
+    <members>
+        <member name="T:IdmApi.SwaggerConfig">
+            <summary>
+            Swagger class
+            </summary>
+        </member>
+        <member name="M:IdmApi.SwaggerConfig.Register">
+            <summary>
+            Register
+            </summary>
+        </member>
+        <member name="T:IdmApi.WebApiConfig">
+            <summary>
+            Web API configuration
+            </summary>
+        </member>
+        <member name="M:IdmApi.WebApiConfig.Register(System.Web.Http.HttpConfiguration)">
+            <summary>
+            Register
+            </summary>
+            <param name="config">config</param>
+        </member>
+        <member name="T:IdmApi.Controllers.ResourcesController">
+            <summary>
+            Resource Controller
+            </summary>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.#ctor(IdmApi.DAL.IRepository)">
+            <summary>
+            Resources Controller constructor
+            </summary>
+            <param name="repo"></param>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.GetById(System.String,System.String)">
+            <summary>
+            Get a resource by its ID
+            </summary>
+            <param name="id">ObjectID that matches the Identity Manager object to retrieve</param>
+            <param name="select">
+            (optional) Comma separated list of attributes of the Identity Manager object to return. Defaults to only 
+            ObjectId and ObjectType, which are always returned. Remember that if all attributes are not returned then
+            some of the attributes may appear null when in fact they are populated inside the Identity Manager Service
+            DB.
+            </param>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.GetAttributeById(System.String,System.String)">
+            <summary>
+            Get an attribute by its resource ID
+            </summary>
+            <param name="id">ObjectID that matches the Identity Manager object to retrieve</param>
+            <param name="attribute">Attribute for the resource to return</param>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.GetByFilter(System.String,System.String)">
+            <summary>
+            Get one or more resources from Identity Manager
+            </summary>
+            <param name="filter">XPath query filter to return specific Identity Manager objects. Defaults to "/*", 
+            which returns all objects.</param>
+            <param name="select">Comma separated list of attributes of the Identity Manager object to return.  
+            Defaults to ObjectId and ObjectType, which are always returned.</param>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.Post(IdmNet.Models.IdmResource)">
+            <summary>
+            POST /api/resouces/ Create a new Resource object in Identity Manager
+            </summary>
+            <param name="resource">New Identity Manager resource</param>
+            <returns>HTTP Response 201 (Created) with Location Header and resulting resource with its ObjectID populated.</returns>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.PutAttribute(System.String,System.String,System.String)">
+            <summary>
+            "PUT /api/resources/{ObjectID}/{attribute}" Set a single-valued attribute's value in Identity Manager 
+            for a particular object.
+            </summary>
+            <remarks>
+            This only works with Single-Valued attributes in Identity Manager.  For Multi-valued attributes use
+            "POST /api/resources/{ObjectID}/{attribute}" to add a new (or initial) value to the multi-valued attribute 
+            or use "DELETE /api/resources/{ObjectID}/{attribute}" to remove an existing attribute from the multi-valued
+            attribute.
+            </remarks>
+            <param name="id">ObjectID of resource to modify</param>
+            <param name="attribute">Name of the single-valued attribute to modify</param>
+            <param name="attributeValue">New attribute value</param>
+            <returns>204 (No Content) on success</returns>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.PostAttribute(System.String,System.String,System.String)">
+            <summary>
+            "POST /api/resources/{ObjectID}/{attribute}" - adds a new (or initial) value to a multi-valued attribute 
+            for a particular object.
+            </summary>
+            <remarks>
+            This only works with Multi-Valued attributes in Identity Manager. To modify a single-valued attribute, use
+            "PUT /api/resources/{ObjectID}/{attribute}". Use "DELETE /api/resources/{ObjectID}/{attribute}" to remove 
+            an existing attribute from the multi-valued attribute.
+            </remarks>
+            <param name="id">ObjectID of resource to be modified</param>
+            <param name="attribute">Name of the multi-valued attribute to which to add a value</param>
+            <param name="attributeValue">Value to add</param>
+            <returns>
+            HTTP Response 201 (Created) with Location of the attribute (returns all attribute values for the multi-valued 
+            attribute.  No other resource or attribute data is returned with the response.
+            </returns>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.DeleteAttribute(System.String,System.String,System.String)">
+            <summary>
+            "DELETE /api/resources/{ObjectID}/{attribute}" - deletes an existing value from a multi-valued attribute 
+            for a particular object.
+            </summary>
+            <remarks>
+            This only works with Multi-Valued attributes in Identity Manager. To remove the value of a single-valued 
+            attribute, use "PUT /api/resources/{ObjectID}/{attribute}" with an empty string "" for the value. Use 
+            "POST /api/resources/{ObjectID}/{attribute}" to a new or initial attribute to a multi-valued attribute.
+            </remarks>
+            <param name="id">ObjectID of resource to be modified</param>
+            <param name="attribute">Name of the multi-valued attribute from which to remove a value</param>
+            <param name="attributeValue">Value to remove</param>
+            <returns> HTTP Response 204 (No Content) on success </returns>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.PutChanges(System.String,IdmNet.SoapModels.Change[])">
+            <summary>
+            Make several attribute changes to an existing resource in Identity Manager
+            </summary>
+            <remarks>
+            The array of changes is an array of JSON objects describing the changes to be made, where 
+            Operation:0 = Single-value attribute REPLACE, Operation:1 = Multi-valued attribute ADD,
+            and Operation:2 = Multi-valued attribute DELETE.  Following is an example of setting first name and last
+            names to certain values and adding one multi-valued attribute to ProxyAddressCollection and removing 
+            another: 
+            [{"Operation":0,"AttributeName":"FirstName","AttributeValue":{"AttributeValue":{"FirstName":"FirstNameTest"}}},{"Operation":0,"AttributeName":"LastName","AttributeValue":{"AttributeValue":{"LastName":"LastNameTest"}}},{"Operation":1,"AttributeName":"ProxyAddressCollection","AttributeValue":{"AttributeValue":{"ProxyAddressCollection":"joe@lab1.lab"}}},{"Operation":2,"AttributeName":"ProxyAddressCollection","AttributeValue":{"AttributeValue":{"ProxyAddressCollection":"joe@lab2.lab"}}}]
+            </remarks>
+            <param name="id">Id</param>
+            <param name="changes">Array of changes to be made</param>
+            <returns> HTTP Response 204 (No Content) on success </returns>
+        </member>
+        <member name="M:IdmApi.Controllers.ResourcesController.DeleteResource(System.String)">
+            <summary>
+            Delete a resource from Identity Manager
+            </summary>
+            <param name="id">ObjectID of the resource to be deleted</param>
+            <returns> HTTP Response 204 (No Content) on success </returns>
+        </member>
+        <member name="P:IdmApi.Controllers.ResourcesController.Repo">
+            <summary>
+            Repository
+            </summary>
+        </member>
+        <member name="T:IdmApi.WebApiApplication">
+            <summary>
+            Web App
+            </summary>
+        </member>
+        <member name="M:IdmApi.WebApiApplication.Application_Start">
+            <summary>
+            Startup method
+            </summary>
+        </member>
+        <member name="T:IdmApi.UnityResolver">
+            <summary>
+            Web API dependency resolver for Unity
+            </summary>
+        </member>
+        <member name="F:IdmApi.UnityResolver.Container">
+            <summary>
+            Unity Container
+            </summary>
+        </member>
+        <member name="M:IdmApi.UnityResolver.#ctor(Microsoft.Practices.Unity.IUnityContainer)">
+            <summary>
+            Constructor
+            </summary>
+            <param name="container">Unity Container</param>
+        </member>
+        <member name="M:IdmApi.UnityResolver.GetService(System.Type)">
+            <summary>
+            Gets the item for the type in question
+            </summary>
+            <param name="serviceType">type to resolve</param>
+            <returns>single object matching type</returns>
+        </member>
+        <member name="M:IdmApi.UnityResolver.GetServices(System.Type)">
+            <summary>
+            Gets all objects that match the given type
+            </summary>
+            <param name="serviceType">type to resolve</param>
+            <returns>multiple types matching object</returns>
+        </member>
+        <member name="M:IdmApi.UnityResolver.BeginScope">
+            <summary>
+            Starts a new scope for the resolver
+            </summary>
+            <returns>New resolver</returns>
+        </member>
+        <member name="M:IdmApi.UnityResolver.Dispose">
+            <summary>
+            Disposes internal resources
+            </summary>
+        </member>
+    </members>
+</doc>

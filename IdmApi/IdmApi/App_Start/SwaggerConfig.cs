@@ -159,19 +159,19 @@ namespace IdmApi
                         // those comments into the generated docs and UI. You can enable this by providing the path to one or
                         // more Xml comment files.
                         //
-                        const string apiComments = @"\IdmApi.XML";
-                        const string netComments = @"\IdmNet.XML";
+                        const string apiComments = @"IdmApi.XML";
+                        const string netComments = @"IdmNet.XML";
                         var apiXmlPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + apiComments;
                         var netXmlPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + netComments;
                         if (!File.Exists(apiXmlPath))
                         {
-                            apiXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\bin" + apiComments;
-                            netXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\" + netComments;
+                            apiXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\content\" + apiComments;
+                            netXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\content\" + netComments;
                         }
                         if (!File.Exists(apiXmlPath))
                         {
-                            apiXmlPath = @"D:\home\site\wwwroot\bin" + apiComments;
-                            netXmlPath = @"D:\home\site\wwwroot\" + netComments;
+                            apiXmlPath = @"D:\home\site\wwwroot\content\" + apiComments;
+                            netXmlPath = @"D:\home\site\wwwroot\content\" + netComments;
                         }
                         if (File.Exists(apiXmlPath))
                         {

@@ -96,7 +96,9 @@
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="bin\" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="WebActivatorEx">
       <HintPath>..\packages\WebActivatorEx.2.0.6\lib\net40\WebActivatorEx.dll</HintPath>
@@ -112,7 +114,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="bin\IdmApi.XML" />
+    <Content Include="Content\IdmApi.XML" />
+    <Content Include="Content\IdmNet.xml" />
     <Content Include="IdmNet.xml">
       <BrowseToURL>IdmNet.xml</BrowseToURL>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

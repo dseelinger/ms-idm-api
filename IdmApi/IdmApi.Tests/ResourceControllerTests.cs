@@ -10,6 +10,7 @@ using System.Web.Http.Hosting;
 using IdmApi.Controllers;
 using IdmApi.DAL.Fakes;
 using IdmNet.Models;
+using IdmNet.SoapModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -194,40 +195,6 @@ namespace IdmApi.Tests
         [TestMethod]
         public async Task It_can_PutAttribute()
         {
-            //[TestMethod]
-            //[TestCategory("Integration")]
-            //public async Task It_can_PutAttributeValueAsync_to_a_present_single_valued_attribute()
-            //{
-            //    await AssertReplaceOk("FirstName", "TestFirstName1", "TestFirstName2");
-            //}
-
-            //var it = IdmNetClientFactory.BuildClient();
-            //IdmResource testResource = await CreateTestPerson(it);
-
-            //try
-            //{
-            //    // Act
-            //    await it.ReplaceValueAsync(testResource.ObjectID, attrName, attrValue1);
-            //    await it.ReplaceValueAsync(testResource.ObjectID, attrName, attrValue2);
-
-            //    // Assert
-            //    var searchResult =
-            //        await
-            //            it.SearchAsync(new SearchCriteria
-            //            {
-            //                XPath = "/Person[ObjectID='" + testResource.ObjectID + "']",
-            //                Attributes = new[] { attrName }
-            //            });
-            //    Assert.AreEqual(attrValue2, searchResult.First().GetAttrValue(attrName));
-            //}
-            //finally
-            //{
-            //    // Afterwards
-            //    it.DeleteAsync(testResource.ObjectID);
-            //}
-
-
-
             var repo = new StubIRepository
             {
                 PutAttributeStringStringString = (objId, name, val) =>
@@ -249,15 +216,136 @@ namespace IdmApi.Tests
             HttpResponseMessage result = await it.PutAttribute("foo", "bar", "bat");
 
             Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+        }
 
+        [TestMethod]
+        public async Task It_can_PostAttribute()
+        {
+            // Arrange
+            var repo = new StubIRepository
+            {
+                PostAttributeStringStringString = (objId, name, val) =>
+                {
+                    Assert.AreEqual("foo", objId);
+                    Assert.AreEqual("bar", name);
+                    Assert.AreEqual("bat", val);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            HttpResponseMessage result = await it.PostAttribute("foo", "bar", "bat");
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.Created, result.StatusCode);
+            Assert.AreEqual("http://myserver/api/resources/foo/bar", result.Headers.Location.ToString());
+        }
+
+        [TestMethod]
+        public async Task It_can_DeleteAttribute()
+        {
+            // Arrange
+            var repo = new StubIRepository
+            {
+                DeleteAttributeStringStringString = (objId, name, val) =>
+                {
+                    Assert.AreEqual("foo", objId);
+                    Assert.AreEqual("bar", name);
+                    Assert.AreEqual("bat", val);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            HttpResponseMessage result = await it.DeleteAttribute("foo", "bar", "bat");
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
         }
 
 
-        // TODO 004: Put Attribute (Replace)
-        // TODO 003: Post Attribute (Add)
-        // TODO 002: Delete Attribute (Delete)
-        // TODO 001: Put Changes (batch update)
-        // TODO 000: Delete Resource
+        [TestMethod]
+        public async Task It_can_PutChanges()
+        {
+            var changes1 = new[]
+            {
+                new Change(ModeType.Replace, "FirstName", "FirstNameTest"),
+                new Change(ModeType.Replace, "LastName", "LastNameTest"),
+                new Change(ModeType.Add, "ProxyAddressCollection", "joe@lab1.lab"),
+                new Change(ModeType.Add, "ProxyAddressCollection", "joe@lab2.lab"),
+            };
 
+            var repo = new StubIRepository
+            {
+                PutChangesStringChangeArray = (objId, changes) =>
+                {
+                    Assert.AreEqual("foo", objId);
+                    Assert.AreEqual(changes1, changes);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            HttpResponseMessage result = await it.PutChanges("foo", changes1);
+
+            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task It_can_DeleteResource()
+        {
+            // Arrange
+            var repo = new StubIRepository
+            {
+                DeleteResourceString = (objId) =>
+                {
+                    Assert.AreEqual("id", objId);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            HttpResponseMessage result = await it.DeleteResource("id");
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+        }
     }
 }
+
+// TODO 012: Implement the Resource client Get operation (as opposed to Enumerate+Pull)
+// TODO 011: Get Count
+// TODO 010: Implement GetSchema(string objectTypeName)
+// TODO 009: Implement Select *
+// TODO 008: Implement Paging
+// TODO 007: Implement /api/persons
+// TODO 006: Implement /api/groups
+// TODO 005: Implement /api/attributetypedescriptions
+// TODO 004: Implement /api/objecttypedescriptions
+// TODO 003: Implement /api/bindingdescriptions
+// TODO 002: Implement /api/whatever
+// TODO 001: Implement Approvals
+// TODO -999: Implement the STS endpoint

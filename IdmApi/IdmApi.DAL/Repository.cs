@@ -5,6 +5,8 @@ using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using IdmNet;
 using IdmNet.Models;
+using IdmNet.SoapModels;
+
 // ReSharper disable InconsistentNaming
 
 namespace IdmApi.DAL
@@ -41,6 +43,26 @@ namespace IdmApi.DAL
         public async Task<Message> PutAttribute(string objectID, string attrName, string attrValue)
         {
             return await _idmNet.ReplaceValueAsync(objectID, attrName, attrValue);
+        }
+
+        public async Task<Message> PostAttribute(string id, string attribute, string attributeValue)
+        {
+            return await _idmNet.AddValueAsync(id, attribute, attributeValue);
+        }
+
+        public async Task<Message> DeleteAttribute(string id, string attribute, string attributeValue)
+        {
+            return await _idmNet.RemoveValueAsync(id, attribute, attributeValue);
+        }
+
+        public async Task<Message> PutChanges(string id, Change[] changes)
+        {
+            return await _idmNet.ChangeMultipleAttrbutes(id, changes);
+        }
+
+        public async Task<Message> DeleteResource(string id)
+        {
+            return await _idmNet.DeleteAsync(id);
         }
     }
 }
