@@ -20,16 +20,13 @@ namespace IdmApi.DAL
             _idmNet = idmNet;
         }
 
-        public async Task<IdmResource> GetById(string id, string[] attributes)
+        public async Task<IdmResource> GetById(string id, string[] @select)
         {
-            var criteria = new SearchCriteria { Attributes = attributes, XPath = "/*[ObjectID='" + id + "']" };
-            var searchResults = await _idmNet.SearchAsync(criteria);
-            return searchResults.FirstOrDefault();
+            return await _idmNet.GetAsync(id, @select);
         }
 
-        public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string[] attributes)
+        public async Task<IEnumerable<IdmResource>> GetByFilter(SearchCriteria criteria)
         {
-            var criteria = new SearchCriteria { Attributes = attributes, XPath = filter };
             var searchResults = await _idmNet.SearchAsync(criteria);
             return searchResults;
         }

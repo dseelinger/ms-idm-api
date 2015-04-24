@@ -21,6 +21,82 @@ namespace IdmApi.Tests
     public class ResourceControllerTests
     {
         [TestMethod]
+        public async Task T001_It_can_search_for_all_ObjectTypeDescription_resources_without_specifying_select_or_sort()
+        {
+            var filter = "/ObjectTypeDescription";
+            var resources = new List<IdmResource>
+            {
+                new IdmResource(),
+                new IdmResource()
+            };
+
+            var repo = new StubIRepository
+            {
+                GetByFilterSearchCriteria = criteria =>
+                {
+                    Assert.AreEqual(1, criteria.Sorting.SortingAttributes.Count());
+                    Assert.IsTrue(criteria.Sorting.SortingAttributes[0].Ascending);
+                    Assert.AreEqual("DisplayName", criteria.Sorting.SortingAttributes[0].AttributeName);
+                    Assert.AreEqual(2, criteria.Selection.Count);
+                    Assert.AreEqual("ObjectID", criteria.Selection[0]);
+                    Assert.AreEqual("ObjectType", criteria.Selection[1]);
+                    Assert.AreEqual(filter, criteria.Filter.Query);
+                    return Task.FromResult((IEnumerable<IdmResource>) resources);
+                }
+            };
+
+            var it = new ResourcesController(repo);
+
+            var result = await it.GetByFilter(filter);
+
+            Assert.AreEqual(2, result.Count());
+
+        }
+
+        // TODO: Sloppy Select
+        // TODO: Sloppy Filter
+        // TODO: throw on null filter
+        // TODO: Sorting
+
+        // TODO: Head
+
+        [TestMethod]
+        public async Task It_can_add_a_value_to_a_multi_valued_attribute_that_already_has_one_or_more_values
+            ()
+        {
+            var objectId = Guid.NewGuid().ToString("D");
+            var attrName = "ProxyAddressesCollection";
+            var newValue = "joecool@snoopy.com";
+
+            // Arrange
+            var repo = new StubIRepository
+            {
+                PostAttributeStringStringString = (objId, name, val) =>
+                {
+                    Assert.AreEqual(objectId, objId);
+                    Assert.AreEqual(attrName, name);
+                    Assert.AreEqual(newValue, val);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "Doesn't matter");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            HttpResponseMessage result = await it.PostAttribute(objectId, attrName, newValue);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.Created, result.StatusCode);
+            Assert.AreEqual(string.Format("http://myserver/api/resources/{0}/{1}", objectId, attrName), result.Headers.Location.ToString());
+        }
+
+
+
+        [TestMethod]
         public void It_has_a_CTOR_that_takes_a_repo()
         {
             var repo = new StubIRepository();
@@ -33,7 +109,7 @@ namespace IdmApi.Tests
         [TestMethod]
         public async Task It_can_GetById_with_no_select()
         {
-            var idmResource = new IdmResource{DisplayName = "foo"};
+            var idmResource = new IdmResource { DisplayName = "foo" };
             var repo = new StubIRepository
             {
                 GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
@@ -144,31 +220,9 @@ namespace IdmApi.Tests
 
 
         [TestMethod]
-        public async Task It_can_GetByFilter()
-        {
-            var resources = new List<IdmResource>
-            {
-                new IdmResource(),
-                new IdmResource()
-            };
-            IEnumerable<IdmResource> res = resources;
-
-            var repo = new StubIRepository
-            {
-                GetByFilterStringStringArray = (s, strings) => Task.FromResult(res)
-            };
-
-            var it = new ResourcesController(repo);
-
-            var result = await it.GetByFilter("foo", "bar");
-
-            Assert.AreEqual(2, result.Count());
-        }
-
-        [TestMethod]
         public async Task It_can_Post_a_resource()
         {
-            var resource = new IdmResource {DisplayName = "foo"};
+            var resource = new IdmResource { DisplayName = "foo" };
 
             var repo = new StubIRepository
             {
@@ -179,7 +233,7 @@ namespace IdmApi.Tests
                 }
             };
 
-            var it = new ResourcesController(repo) {Request = new HttpRequestMessage()};
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
             it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
             it.Request.RequestUri = new Uri("http://myserver");
 

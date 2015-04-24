@@ -19,8 +19,6 @@ namespace IdmApi.Tests.Spikes
             };
 
             var json = JsonConvert.SerializeObject(changes1);
-
-
         }
     }
 }

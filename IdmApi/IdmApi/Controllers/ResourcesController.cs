@@ -9,6 +9,7 @@ using IdmApi.DAL;
 using IdmNet.Models;
 using IdmNet.SoapModels;
 using Newtonsoft.Json.Linq;
+
 // ReSharper disable UnusedVariable
 
 namespace IdmApi.Controllers
@@ -33,6 +34,22 @@ namespace IdmApi.Controllers
         }
 
 
+        /// <summary>
+        /// Get one or more resources from Identity Manager
+        /// </summary>
+        /// <param name="filter">XPath query filter to return specific Identity Manager objects. Defaults to "/*", 
+        /// which returns all objects.</param>
+        /// <param name="select">Comma separated list of attributes of the Identity Manager object to return.  
+        /// Defaults to ObjectId and ObjectType, which are always returned.</param>
+        [Route("api/resources/")]
+        public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string select = null)
+        {
+
+            var attributes = (select == null) ? null : select.Split(',');
+            return await Repo.GetByFilter(new SearchCriteria{Filter = new Filter(filter)});
+        }
+
+        
         /// <summary>
         /// Get a resource by its ID
         /// </summary>
@@ -75,19 +92,6 @@ namespace IdmApi.Controllers
             return null;
         }
 
-        /// <summary>
-        /// Get one or more resources from Identity Manager
-        /// </summary>
-        /// <param name="filter">XPath query filter to return specific Identity Manager objects. Defaults to "/*", 
-        /// which returns all objects.</param>
-        /// <param name="select">Comma separated list of attributes of the Identity Manager object to return.  
-        /// Defaults to ObjectId and ObjectType, which are always returned.</param>
-        [Route("api/resources/")]
-        public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string select = null)
-        {
-            var attributes = (select == null) ? null : select.Split(',');
-            return await Repo.GetByFilter(filter, attributes);
-        }
 
 
         /// <summary>
