@@ -52,7 +52,7 @@ namespace IdmApi.Tests
         }
 
         [TestMethod]
-        public async Task T002_It_can_search_and_return_specific_attributes()
+        public async Task T002_It_can_search_and_return_specific_attributes() 
         {
             var filter = "/ObjectTypeDescription";
             var resources = new List<IdmResource>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -44,12 +45,9 @@ namespace IdmApi.Controllers
         [Route("api/resources/")]
         public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string select = null)
         {
-            var totalAttributes = new List<string> { "ObjectID" , "ObjectType" };
-            if (select != null)
-            {
-                totalAttributes.AddRange(select.Split(','));
-            }
-            return await Repo.GetByFilter(new SearchCriteria(filter) {Selection = totalAttributes});
+
+            var attributes = (select == null) ? null : select.Split(',').ToList();
+            return await Repo.GetByFilter(new SearchCriteria(filter) {Selection = attributes});
         }
 
         
