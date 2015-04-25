@@ -44,9 +44,12 @@ namespace IdmApi.Controllers
         [Route("api/resources/")]
         public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string select = null)
         {
-
-            var attributes = (select == null) ? null : select.Split(',');
-            return await Repo.GetByFilter(new SearchCriteria{Filter = new Filter(filter)});
+            var totalAttributes = new List<string> { "ObjectID" , "ObjectType" };
+            if (select != null)
+            {
+                totalAttributes.AddRange(select.Split(','));
+            }
+            return await Repo.GetByFilter(new SearchCriteria(filter) {Selection = totalAttributes});
         }
 
         

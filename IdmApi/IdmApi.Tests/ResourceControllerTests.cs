@@ -38,16 +38,47 @@ namespace IdmApi.Tests
                     Assert.IsTrue(criteria.Sorting.SortingAttributes[0].Ascending);
                     Assert.AreEqual("DisplayName", criteria.Sorting.SortingAttributes[0].AttributeName);
                     Assert.AreEqual(2, criteria.Selection.Count);
-                    Assert.AreEqual("ObjectID", criteria.Selection[0]);
-                    Assert.AreEqual("ObjectType", criteria.Selection[1]);
                     Assert.AreEqual(filter, criteria.Filter.Query);
-                    return Task.FromResult((IEnumerable<IdmResource>) resources);
+                    return Task.FromResult((IEnumerable<IdmResource>)resources);
                 }
             };
 
             var it = new ResourcesController(repo);
 
             var result = await it.GetByFilter(filter);
+
+            Assert.AreEqual(2, result.Count());
+
+        }
+
+        [TestMethod]
+        public async Task T002_It_can_search_and_return_specific_attributes()
+        {
+            var filter = "/ObjectTypeDescription";
+            var resources = new List<IdmResource>
+            {
+                new IdmResource(),
+                new IdmResource()
+            };
+
+            var repo = new StubIRepository
+            {
+                GetByFilterSearchCriteria = criteria =>
+                {
+                    Assert.AreEqual(1, criteria.Sorting.SortingAttributes.Count());
+                    Assert.IsTrue(criteria.Sorting.SortingAttributes[0].Ascending);
+                    Assert.AreEqual("DisplayName", criteria.Sorting.SortingAttributes[0].AttributeName);
+                    Assert.AreEqual(4, criteria.Selection.Count);
+                    Assert.AreEqual("DisplayName", criteria.Selection[2]);
+                    Assert.AreEqual("Name", criteria.Selection[3]);
+                    Assert.AreEqual(filter, criteria.Filter.Query);
+                    return Task.FromResult((IEnumerable<IdmResource>)resources);
+                }
+            };
+
+            var it = new ResourcesController(repo);
+
+            var result = await it.GetByFilter(filter, "DisplayName,Name");
 
             Assert.AreEqual(2, result.Count());
 
