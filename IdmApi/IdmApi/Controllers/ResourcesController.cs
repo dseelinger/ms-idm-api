@@ -38,19 +38,26 @@ namespace IdmApi.Controllers
         /// <summary>
         /// Get one or more resources from Identity Manager
         /// </summary>
+        /// <param name="s"></param>
         /// <param name="filter">XPath query filter to return specific Identity Manager objects. Defaults to "/*", 
-        /// which returns all objects.</param>
+        ///     which returns all objects.</param>
         /// <param name="select">Comma separated list of attributes of the Identity Manager object to return.  
-        /// Defaults to ObjectId and ObjectType, which are always returned.</param>
+        ///     Defaults to ObjectId and ObjectType, which are always returned.</param>
+        /// <param name="sort">
+        /// Comma separated list of attributes to sort by, must be in the format of  "AttributeName:SortDirection"
+        /// For example: BoundObjectType:Ascending,BoundAttributeType:Descending - which would be a valid sort order 
+        /// for BindingDescription objects in Identity Manager
+        /// </param>
         [Route("api/resources/")]
-        public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string select = null)
+        public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string @select = null, string sort = null)
         {
-
             var attributes = (select == null) ? null : select.Split(',').ToList();
-            return await Repo.GetByFilter(new SearchCriteria(filter) {Selection = attributes});
+            var searchCriteria = new SearchCriteria(filter) {Selection = attributes};
+            AddSortToSearchCriteria(sort, searchCriteria);
+            return await Repo.GetByFilter(searchCriteria);
         }
 
-        
+
         /// <summary>
         /// Get a resource by its ID
         /// </summary>
@@ -228,7 +235,42 @@ namespace IdmApi.Controllers
             return Regex.Replace(@select, @"\s+", "");
         }
 
+        private static void AddSortToSearchCriteria(string sort, SearchCriteria searchCriteria)
+        {
+            if (sort != null)
+            {
+                var sortAttributes = new List<SortingAttribute>();
+                foreach (var sortDefinition in sort.Split(','))
+                {
+                    AddSortAttribute(sortDefinition, sortAttributes);
+                }
+                searchCriteria.Sorting.SortingAttributes = sortAttributes.ToArray();
+            }
+        }
 
+        private static void AddSortAttribute(string sortDefinition, List<SortingAttribute> sortAttributes)
+        {
+            var sortParts = sortDefinition.Split(':');
+            CheckBadSort(sortParts);
+            sortAttributes.Add(new SortingAttribute
+            {
+                Ascending = (sortParts[1].ToLower() != "descending"),
+                AttributeName = sortParts[0]
+            });
+        }
 
+        private static void CheckBadSort(string[] sortParts)
+        {
+            if (sortParts.Length != 2)
+            {
+                throw new HttpResponseException(new HttpResponseMessage(HttpStatusCode.BadRequest)
+                {
+                    ReasonPhrase = "BAD REQUEST",
+                    Content =
+                        new StringContent(
+                            "sort must be a comma separated list of attributes to sort by, must be in the format of  'AttributeName:SortDirection'. For example: BoundObjectType:Ascending,BoundAttributeType:Descending - which would be a valid sort order for BindingDescription objects in Identity Manager")
+                });
+            }
+        }
     }
 }

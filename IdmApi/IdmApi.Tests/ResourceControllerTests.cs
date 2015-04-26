@@ -65,13 +65,9 @@ namespace IdmApi.Tests
             {
                 GetByFilterSearchCriteria = criteria =>
                 {
-                    Assert.AreEqual(1, criteria.Sorting.SortingAttributes.Count());
-                    Assert.IsTrue(criteria.Sorting.SortingAttributes[0].Ascending);
-                    Assert.AreEqual("DisplayName", criteria.Sorting.SortingAttributes[0].AttributeName);
                     Assert.AreEqual(4, criteria.Selection.Count);
                     Assert.AreEqual("DisplayName", criteria.Selection[2]);
                     Assert.AreEqual("Name", criteria.Selection[3]);
-                    Assert.AreEqual(filter, criteria.Filter.Query);
                     return Task.FromResult((IEnumerable<IdmResource>)resources);
                 }
             };
@@ -79,6 +75,66 @@ namespace IdmApi.Tests
             var it = new ResourcesController(repo);
 
             var result = await it.GetByFilter(filter, "DisplayName,Name");
+
+            Assert.AreEqual(2, result.Count());
+
+        }
+
+        [TestMethod]
+        public async Task T003_It_can_search_and_return_all_attributes_with_Select_STAR()
+        {
+            var filter = "/ObjectTypeDescription";
+            var resources = new List<IdmResource>
+            {
+                new IdmResource(),
+                new IdmResource()
+            };
+
+            var repo = new StubIRepository
+            {
+                GetByFilterSearchCriteria = criteria =>
+                {
+                    Assert.AreEqual(3, criteria.Selection.Count);
+                    Assert.AreEqual("*", criteria.Selection[2]);
+                    return Task.FromResult((IEnumerable<IdmResource>)resources);
+                }
+            };
+
+            var it = new ResourcesController(repo);
+
+            var result = await it.GetByFilter(filter, "*");
+
+            Assert.AreEqual(2, result.Count());
+
+        }
+
+        [TestMethod]
+        public async Task T004_It_can_Search_and_Sort_the_results_by_multiple_attributes_in_Ascending_or_Descending_order()
+        {
+            var filter = "/BindingDescription";
+            var resources = new List<IdmResource>
+            {
+                new IdmResource(),
+                new IdmResource()
+            };
+
+            var repo = new StubIRepository
+            {
+                GetByFilterSearchCriteria = criteria =>
+                {
+                    Assert.AreEqual(2, criteria.Sorting.SortingAttributes.Count());
+                    Assert.IsTrue(criteria.Sorting.SortingAttributes[0].Ascending);
+                    Assert.AreEqual("BoundObjectType", criteria.Sorting.SortingAttributes[0].AttributeName);
+                    Assert.IsFalse(criteria.Sorting.SortingAttributes[1].Ascending);
+                    Assert.AreEqual("BoundAttributeType", criteria.Sorting.SortingAttributes[1].AttributeName);
+
+                    return Task.FromResult((IEnumerable<IdmResource>)resources);
+                }
+            };
+
+            var it = new ResourcesController(repo);
+
+            var result = await it.GetByFilter(filter, "*", "BoundObjectType:Ascending,BoundAttributeType:Descending");
 
             Assert.AreEqual(2, result.Count());
 
