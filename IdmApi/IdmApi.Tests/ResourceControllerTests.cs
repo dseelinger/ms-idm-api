@@ -164,7 +164,52 @@ namespace IdmApi.Tests
         }
 
 
+        [TestMethod]
+        public async Task T006_It_can_get_any_or_all_attributes_for_a_resource_by_its_ObjectID()
+        {
+            // Arrange
+            var idmResource = new IdmResource { DisplayName = "foo" };
+            var repo = new StubIRepository
+            {
+                GetByIdStringListOfString = (id, @select) =>
+                {
+                    Assert.AreEqual("myID", id);
+                    Assert.AreEqual("*", @select[0]);
+                    return Task.FromResult(idmResource);
+                }
+            };
+            var it = new ResourcesController(repo);
 
+            // Act
+            var result = await it.GetById("myID", "*");
+
+            // Assert
+            Assert.AreEqual(idmResource, result);
+        }
+
+
+        [TestMethod]
+        public async Task T007_It_can_return_the_number_of_matching_records_for_a_given_search()
+        {
+            // Arrange
+            var repo = new StubIRepository
+            {
+                GetCountString = (filter) =>
+                {
+                    Assert.AreEqual("/ConstantSpecifier", filter);
+                    return Task.FromResult(97);
+                }
+            };
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            HttpResponseMessage result = await it.Head("/ConstantSpecifier");
+
+            // Assert
+            Assert.AreEqual("97", result.Headers.GetValues("x-idm-count").First());
+        }
 
 
 

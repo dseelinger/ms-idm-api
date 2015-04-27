@@ -1,6 +1,5 @@
 ﻿#pragma warning disable 1591
 using System.Collections.Generic;
-using System.Linq;
 using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using IdmNet;
@@ -23,6 +22,11 @@ namespace IdmApi.DAL
         public async Task<IdmResource> GetById(string id, List<string> @select)
         {
             return await _idmNet.GetAsync(id, @select);
+        }
+
+        public async Task<int> GetCount(string filter)
+        {
+            return await _idmNet.GetCountAsync(filter);
         }
 
         public async Task<IEnumerable<IdmResource>> GetByFilter(SearchCriteria criteria)

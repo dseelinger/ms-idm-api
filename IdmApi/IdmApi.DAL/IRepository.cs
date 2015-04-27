@@ -10,6 +10,7 @@ namespace IdmApi.DAL
 {
     public interface IRepository
     {
+        Task<int> GetCount(string filter);
         Task<IEnumerable<IdmResource>> GetByFilter(SearchCriteria criteria);
         Task<IdmResource> GetById(string id, List<string> @select);
         Task<IdmResource> Post(IdmResource resource);

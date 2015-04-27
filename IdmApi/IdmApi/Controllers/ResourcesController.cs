@@ -38,9 +38,7 @@ namespace IdmApi.Controllers
         /// <summary>
         /// Get one or more resources from Identity Manager
         /// </summary>
-        /// <param name="s"></param>
-        /// <param name="filter">XPath query filter to return specific Identity Manager objects. Defaults to "/*", 
-        ///     which returns all objects.</param>
+        /// <param name="filter">XPath query filter to return specific Identity Manager objects.</param>
         /// <param name="select">Comma separated list of attributes of the Identity Manager object to return.  
         ///     Defaults to ObjectId and ObjectType, which are always returned.</param>
         /// <param name="sort">
@@ -48,6 +46,7 @@ namespace IdmApi.Controllers
         /// For example: BoundObjectType:Ascending,BoundAttributeType:Descending - which would be a valid sort order 
         /// for BindingDescription objects in Identity Manager
         /// </param>
+        /// <response code="200">OK</response>
         [Route("api/resources/")]
         public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string @select = null, string sort = null)
         {
@@ -68,6 +67,7 @@ namespace IdmApi.Controllers
         /// some of the attributes may appear null when in fact they are populated inside the Identity Manager Service
         /// DB.
         /// </param>
+        /// <response code="200">OK</response>
         [Route("api/resources/{id}")]
         public async Task<IdmResource> GetById(string id, string @select = null)
         {
@@ -82,10 +82,10 @@ namespace IdmApi.Controllers
         /// </summary>
         /// <param name="id">ObjectID that matches the Identity Manager object to retrieve</param>
         /// <param name="attribute">Attribute for the resource to return</param>
+        /// <response code="200">OK</response>
         [Route("api/resources/{id}/{attribute}")]
         public async Task<object> GetAttributeById(string id, string attribute)
         {
-
             var attrAsList = new List<string> {attribute};
             var resource = await Repo.GetById(id, attrAsList);
 
@@ -107,7 +107,8 @@ namespace IdmApi.Controllers
         /// POST /api/resouces/ Create a new Resource object in Identity Manager
         /// </summary>
         /// <param name="resource">New Identity Manager resource</param>
-        /// <returns>HTTP Response 201 (Created) with Location Header and resulting resource with its ObjectID populated.</returns>
+        /// <remarks>HTTP Response 201 (Created) with Location Header and resulting resource with its ObjectID populated.</remarks>
+        /// <response code="201">Created</response>
         [Route("api/resources/")]
         public async Task<HttpResponseMessage> Post(IdmResource resource)
         {
@@ -132,7 +133,7 @@ namespace IdmApi.Controllers
         /// <param name="id">ObjectID of resource to modify</param>
         /// <param name="attribute">Name of the single-valued attribute to modify</param>
         /// <param name="attributeValue">New attribute value</param>
-        /// <returns>204 (No Content) on success</returns>
+        /// <response code="204">No Content</response>
         [Route("api/resources/{id}/{attribute}")]
         public async Task<HttpResponseMessage> PutAttribute(string id, string attribute, string attributeValue)
         {
@@ -150,14 +151,13 @@ namespace IdmApi.Controllers
         /// This only works with Multi-Valued attributes in Identity Manager. To modify a single-valued attribute, use
         /// "PUT /api/resources/{ObjectID}/{attribute}". Use "DELETE /api/resources/{ObjectID}/{attribute}" to remove 
         /// an existing attribute from the multi-valued attribute.
+        /// Returns HTTP Response 201 (Created) with Location of the attribute (returns all attribute values for the multi-valued 
+        /// attribute.  No other resource or attribute data is returned with the response.
         /// </remarks>
         /// <param name="id">ObjectID of resource to be modified</param>
         /// <param name="attribute">Name of the multi-valued attribute to which to add a value</param>
         /// <param name="attributeValue">Value to add</param>
-        /// <returns>
-        /// HTTP Response 201 (Created) with Location of the attribute (returns all attribute values for the multi-valued 
-        /// attribute.  No other resource or attribute data is returned with the response.
-        /// </returns>
+        /// <response code="201">Created</response>
         [Route("api/resources/{id}/{attribute}")]
         public async Task<HttpResponseMessage> PostAttribute(string id, string attribute, string attributeValue)
         {
@@ -181,7 +181,7 @@ namespace IdmApi.Controllers
         /// <param name="id">ObjectID of resource to be modified</param>
         /// <param name="attribute">Name of the multi-valued attribute from which to remove a value</param>
         /// <param name="attributeValue">Value to remove</param>
-        /// <returns> HTTP Response 204 (No Content) on success </returns>
+        /// <response code="204">No Content</response>
         [Route("api/resources/{id}/{attribute}")]
         public async Task<HttpResponseMessage> DeleteAttribute(string id, string attribute, string attributeValue)
         {
@@ -205,7 +205,7 @@ namespace IdmApi.Controllers
         /// </remarks>
         /// <param name="id">Id</param>
         /// <param name="changes">Array of changes to be made</param>
-        /// <returns> HTTP Response 204 (No Content) on success </returns>
+        /// <response code="204">No Content</response>
         [Route("api/resources/{id}")]
         public async Task<HttpResponseMessage> PutChanges(string id, Change[] changes)
         {
@@ -220,7 +220,7 @@ namespace IdmApi.Controllers
         /// Delete a resource from Identity Manager
         /// </summary>
         /// <param name="id">ObjectID of the resource to be deleted</param>
-        /// <returns> HTTP Response 204 (No Content) on success </returns>
+        /// <response code="204">No Content</response>
         [Route("api/resources/{id}")]
         public async Task<HttpResponseMessage> DeleteResource(string id)
         {
@@ -230,6 +230,38 @@ namespace IdmApi.Controllers
 
             return response;
         }
+
+        /// <summary>
+        /// Get the count of the number of records that match (or would be returned) from a particular search request
+        /// </summary>
+        /// <remarks>
+        /// HEAD requests by definition don't return anything in the body of the response.  Instead, the count will 
+        /// appear in a custom header called "x-idm-count"
+        /// </remarks>
+        /// <param name="filter">XPath query filter to perform the search.</param>
+        /// <response code="204">No Content</response>
+        [Route("api/resources/")]
+        public async Task<HttpResponseMessage> Head(string filter)
+        {
+            int count = await Repo.GetCount(filter);
+
+            var response = Request.CreateResponse(HttpStatusCode.NoContent);
+            response.Headers.Add("x-idm-count", new[] {count.ToString()});
+
+            return response;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
 
         private static string RemoveAllWhitespace(string @select)
         {
@@ -260,6 +292,7 @@ namespace IdmApi.Controllers
             });
         }
 
+        // ReSharper disable once UnusedParameter.Local
         private static void CheckBadSort(string[] sortParts)
         {
             if (sortParts.Length != 2)
@@ -273,5 +306,6 @@ namespace IdmApi.Controllers
                 });
             }
         }
+
     }
 }
