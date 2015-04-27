@@ -20,7 +20,7 @@ namespace IdmApi.DAL
             _idmNet = idmNet;
         }
 
-        public async Task<IdmResource> GetById(string id, string[] @select)
+        public async Task<IdmResource> GetById(string id, List<string> @select)
         {
             return await _idmNet.GetAsync(id, @select);
         }

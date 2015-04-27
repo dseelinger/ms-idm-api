@@ -71,9 +71,9 @@ namespace IdmApi.Controllers
         [Route("api/resources/{id}")]
         public async Task<IdmResource> GetById(string id, string @select = null)
         {
-            string[] attributes = null;
+            List<string> attributes = null;
             if (@select != null)
-                attributes = RemoveAllWhitespace(@select).Split(',');
+                attributes = RemoveAllWhitespace(@select).Split(',').ToList();
             return await Repo.GetById(id, attributes);
         }
 
@@ -86,7 +86,8 @@ namespace IdmApi.Controllers
         public async Task<object> GetAttributeById(string id, string attribute)
         {
 
-            var resource = await Repo.GetById(id, new[] { attribute });
+            var attrAsList = new List<string> {attribute};
+            var resource = await Repo.GetById(id, attrAsList);
 
             var attr = resource.GetAttr(attribute);
             if (attr != null)

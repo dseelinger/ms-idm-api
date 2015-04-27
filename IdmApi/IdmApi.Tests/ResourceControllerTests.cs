@@ -140,6 +140,34 @@ namespace IdmApi.Tests
 
         }
 
+        [TestMethod]
+        public async Task T005_It_can_get_a_resource_by_its_ObjectID()
+        {
+            // Arrange
+            var idmResource = new IdmResource { DisplayName = "foo" };
+            var repo = new StubIRepository
+            {
+                GetByIdStringListOfString = (id, @select) =>
+                {
+                    Assert.AreEqual("myID", id);
+                    Assert.IsNull(@select);
+                    return Task.FromResult(idmResource);
+                }
+            };
+            var it = new ResourcesController(repo);
+
+            // Act
+            var result = await it.GetById("myID");
+
+            // Assert
+            Assert.AreEqual(idmResource, result);
+        }
+
+
+
+
+
+
         // TODO: Sloppy Select
         // TODO: Sloppy Filter
         // TODO: throw on null filter
@@ -199,7 +227,7 @@ namespace IdmApi.Tests
             var idmResource = new IdmResource { DisplayName = "foo" };
             var repo = new StubIRepository
             {
-                GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
+                GetByIdStringListOfString = (s, strings) => Task.FromResult(idmResource)
             };
 
             var it = new ResourcesController(repo);
@@ -214,7 +242,7 @@ namespace IdmApi.Tests
         {
             var repo = new StubIRepository
             {
-                GetByIdStringStringArray = (s, strings) =>
+                GetByIdStringListOfString = (s, strings) =>
                 {
                     Assert.AreEqual("bar", strings[0]);
                     Assert.AreEqual("bat", strings[1]);
@@ -232,7 +260,7 @@ namespace IdmApi.Tests
         {
             var repo = new StubIRepository
             {
-                GetByIdStringStringArray = (s, strings) =>
+                GetByIdStringListOfString = (s, strings) => 
                 {
                     Assert.AreEqual("bar", strings[0]);
                     Assert.AreEqual("bat", strings[1]);
@@ -254,7 +282,7 @@ namespace IdmApi.Tests
             };
             var repo = new StubIRepository
             {
-                GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
+                GetByIdStringListOfString = (s, strings) => Task.FromResult(idmResource)
             };
 
             var it = new ResourcesController(repo);
@@ -274,7 +302,7 @@ namespace IdmApi.Tests
             };
             var repo = new StubIRepository
             {
-                GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
+                GetByIdStringListOfString = (s, strings) => Task.FromResult(idmResource)
             };
 
             var it = new ResourcesController(repo);
@@ -295,7 +323,7 @@ namespace IdmApi.Tests
             };
             var repo = new StubIRepository
             {
-                GetByIdStringStringArray = (s, strings) => Task.FromResult(idmResource)
+                GetByIdStringListOfString = (s, strings) => Task.FromResult(idmResource)
             };
 
             var it = new ResourcesController(repo);
@@ -455,7 +483,7 @@ namespace IdmApi.Tests
             // Arrange
             var repo = new StubIRepository
             {
-                DeleteResourceString = (objId) =>
+                DeleteResourceString = objId =>
                 {
                     Assert.AreEqual("id", objId);
 

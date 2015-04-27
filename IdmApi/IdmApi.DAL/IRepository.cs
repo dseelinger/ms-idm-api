@@ -11,7 +11,7 @@ namespace IdmApi.DAL
     public interface IRepository
     {
         Task<IEnumerable<IdmResource>> GetByFilter(SearchCriteria criteria);
-        Task<IdmResource> GetById(string id, string[] @select);
+        Task<IdmResource> GetById(string id, List<string> @select);
         Task<IdmResource> Post(IdmResource resource);
         Task<Message> PutAttribute(string objectID, string attrName, string attrValue);
         Task<Message> PostAttribute(string id, string attribute, string attributeValue);
