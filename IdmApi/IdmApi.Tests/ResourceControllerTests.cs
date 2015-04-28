@@ -54,7 +54,7 @@ namespace IdmApi.Tests
         [TestMethod]
         public async Task T002_It_can_search_and_return_specific_attributes() 
         {
-            var filter = "/ObjectTypeDescription";
+            const string filter = "/ObjectTypeDescription";
             var resources = new List<IdmResource>
             {
                 new IdmResource(),
@@ -77,7 +77,6 @@ namespace IdmApi.Tests
             var result = await it.GetByFilter(filter, "DisplayName,Name");
 
             Assert.AreEqual(2, result.Count());
-
         }
 
         [TestMethod]
@@ -194,7 +193,7 @@ namespace IdmApi.Tests
             // Arrange
             var repo = new StubIRepository
             {
-                GetCountString = (filter) =>
+                GetCountString = filter =>
                 {
                     Assert.AreEqual("/ConstantSpecifier", filter);
                     return Task.FromResult(97);
@@ -211,14 +210,77 @@ namespace IdmApi.Tests
             Assert.AreEqual("97", result.Headers.GetValues("x-idm-count").First());
         }
 
+        [TestMethod]
+        public async Task T008_It_can_create_objects_in_Identity_Manager()
+        {
+            var resource = new IdmResource { DisplayName = "foo" };
+
+            var repo = new StubIRepository
+            {
+                PostIdmResource = idmResource =>
+                {
+                    idmResource.ObjectID = "bar";
+                    return Task.FromResult(idmResource);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            HttpResponseMessage result = await it.Post(resource);
+
+            var json = await result.Content.ReadAsStringAsync();
+            var resourceResult = JsonConvert.DeserializeObject<IdmResource>(json);
+            Assert.AreEqual(HttpStatusCode.Created, result.StatusCode);
+            Assert.AreEqual("bar", resourceResult.ObjectID);
+            Assert.AreEqual("http://myserver/api/resources/bar", result.Headers.Location.ToString());
+        }
+
+        [TestMethod]
+        public async Task T009_It_can_delete_objects_from_Identity_Manager()
+        {
+            // Arrange
+            var repo = new StubIRepository
+            {
+                DeleteResourceString = objId =>
+                {
+                    Assert.AreEqual("id", objId);
+
+                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
+                    return Task.FromResult(msg);
+                }
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            HttpResponseMessage result = await it.DeleteResource("id");
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+        }
 
 
-        // TODO: Sloppy Select
-        // TODO: Sloppy Filter
-        // TODO: throw on null filter
-        // TODO: Sorting
 
-        // TODO: Head
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         [TestMethod]
         public async Task It_can_add_a_value_to_a_multi_valued_attribute_that_already_has_one_or_more_values
@@ -380,33 +442,6 @@ namespace IdmApi.Tests
 
 
         [TestMethod]
-        public async Task It_can_Post_a_resource()
-        {
-            var resource = new IdmResource { DisplayName = "foo" };
-
-            var repo = new StubIRepository
-            {
-                PostIdmResource = idmResource =>
-                {
-                    idmResource.ObjectID = "bar";
-                    return Task.FromResult(idmResource);
-                }
-            };
-
-            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
-            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
-            it.Request.RequestUri = new Uri("http://myserver");
-
-            HttpResponseMessage result = await it.Post(resource);
-
-            var json = await result.Content.ReadAsStringAsync();
-            var resourceResult = JsonConvert.DeserializeObject<IdmResource>(json);
-            Assert.AreEqual(HttpStatusCode.Created, result.StatusCode);
-            Assert.AreEqual("bar", resourceResult.ObjectID);
-            Assert.AreEqual("http://myserver/api/resources/bar", result.Headers.Location.ToString());
-        }
-
-        [TestMethod]
         public async Task It_can_PutAttribute()
         {
             var repo = new StubIRepository
@@ -522,39 +557,9 @@ namespace IdmApi.Tests
             Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
         }
 
-        [TestMethod]
-        public async Task It_can_DeleteResource()
-        {
-            // Arrange
-            var repo = new StubIRepository
-            {
-                DeleteResourceString = objId =>
-                {
-                    Assert.AreEqual("id", objId);
-
-                    var msg = Message.CreateMessage(MessageVersion.Default, "foo");
-                    return Task.FromResult(msg);
-                }
-            };
-
-            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
-            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
-            it.Request.RequestUri = new Uri("http://myserver");
-
-            // Act
-            HttpResponseMessage result = await it.DeleteResource("id");
-
-            // Assert
-            Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
-        }
     }
 }
 
-// TODO 012: Implement the Resource client Get operation (as opposed to Enumerate+Pull)
-// TODO 011: Get Count
-// TODO 010: Implement GetSchema(string objectTypeName)
-// TODO 009: Implement Select *
-// TODO 008: Implement Paging
 // TODO 007: Implement /api/persons
 // TODO 006: Implement /api/groups
 // TODO 005: Implement /api/attributetypedescriptions

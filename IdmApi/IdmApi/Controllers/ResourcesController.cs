@@ -120,6 +120,25 @@ namespace IdmApi.Controllers
             return response;
         }
 
+
+        /// <summary>
+        /// Delete a resource from Identity Manager
+        /// </summary>
+        /// <param name="id">ObjectID of the resource to be deleted</param>
+        /// <response code="204">No Content</response>
+        [Route("api/resources/{id}")]
+        public async Task<HttpResponseMessage> DeleteResource(string id)
+        {
+            var result = await Repo.DeleteResource(id);
+
+            HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.NoContent);
+
+            return response;
+        }
+
+
+
+
         /// <summary>
         /// "PUT /api/resources/{ObjectID}/{attribute}" Set a single-valued attribute's value in Identity Manager 
         /// for a particular object.
@@ -210,21 +229,6 @@ namespace IdmApi.Controllers
         public async Task<HttpResponseMessage> PutChanges(string id, Change[] changes)
         {
             var result = await Repo.PutChanges(id, changes);
-
-            HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.NoContent);
-
-            return response;
-        }
-
-        /// <summary>
-        /// Delete a resource from Identity Manager
-        /// </summary>
-        /// <param name="id">ObjectID of the resource to be deleted</param>
-        /// <response code="204">No Content</response>
-        [Route("api/resources/{id}")]
-        public async Task<HttpResponseMessage> DeleteResource(string id)
-        {
-            var result = await Repo.DeleteResource(id);
 
             HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.NoContent);
 
