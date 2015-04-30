@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
 using IdmApi.DAL;
+using IdmApi.Models;
 using IdmNet.Models;
 using IdmNet.SoapModels;
 using Newtonsoft.Json.Linq;
@@ -38,6 +39,12 @@ namespace IdmApi.Controllers
         /// <summary>
         /// Get one or more resources from Identity Manager
         /// </summary>
+        /// <remarks>
+        /// Passing doPagedSearch=true only returns partial result, if the pageSize is smaller than the number of 
+        /// records found in the search and a header called x-idm-next-link will contain a link that may be used to 
+        /// return the next page of results and so on, until all records are retieved. When all records have been 
+        /// retrieved, no x-idm-next-link will be present in the response.
+        /// </remarks>
         /// <param name="filter">XPath query filter to return specific Identity Manager objects.</param>
         /// <param name="select">Comma separated list of attributes of the Identity Manager object to return.  
         ///     Defaults to ObjectId and ObjectType, which are always returned.</param>
@@ -46,14 +53,63 @@ namespace IdmApi.Controllers
         /// For example: BoundObjectType:Ascending,BoundAttributeType:Descending - which would be a valid sort order 
         /// for BindingDescription objects in Identity Manager
         /// </param>
+        /// <param name="pageSize">
+        /// The number of records to return from Identity Manager at a time.  Note that passing this a value and not 
+        /// passing doPagedSearc = true will cause the back end to bring back each page of results behind the scenes 
+        /// and still return all the records at the end of those back-end retrievals.
+        /// </param>
+        /// <param name="doPagedSearch">
+        /// If true, then up to "pageSize" records will be returned, and the next-link will be returned in the 
+        /// x-idm-next-link header if more records are available.
+        /// </param>
         /// <response code="200">OK</response>
         [Route("api/resources/")]
-        public async Task<IEnumerable<IdmResource>> GetByFilter(string filter, string @select = null, string sort = null)
+        public async Task<HttpResponseMessage> GetByFilter(string filter, string @select = null, string sort = null, int pageSize = 50, bool doPagedSearch = false)
         {
             var attributes = (select == null) ? null : select.Split(',').ToList();
             var searchCriteria = new SearchCriteria(filter) {Selection = attributes};
             AddSortToSearchCriteria(sort, searchCriteria);
-            return await Repo.GetByFilter(searchCriteria);
+            HttpResponseMessage response;
+            if (doPagedSearch)
+            {
+                var results = await Repo.GetPagedResults(searchCriteria, pageSize);
+                response = Request.CreateResponse(HttpStatusCode.Created, results);
+                if (results.EndOfSequence == null)
+                {
+                    
+                    var etag = CreateETag(results.PagingContext);
+                    response.Headers.Add("x-idm-next-link", Request.RequestUri.OriginalString + "/api/etags/" + etag);
+                }
+            }
+            else
+            {
+                var results = await Repo.GetByFilter(searchCriteria, pageSize);
+                response = Request.CreateResponse(HttpStatusCode.Created, results);
+            }
+
+            return response;
+        }
+
+        private string CreateETag(PagingContext pagingContext)
+        {
+            if (EtagObjectTypeDoesNotExist())
+            {
+                CreateEtagObjectType();
+            }
+            var newEtag = new ETag(pagingContext);
+            var idmResource = Repo.Create(newEtag);
+
+            return newEtag.ObjectID;
+        }
+
+        private void CreateEtagObjectType()
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool EtagObjectTypeDoesNotExist()
+        {
+            throw new NotImplementedException();
         }
 
 
@@ -112,7 +168,7 @@ namespace IdmApi.Controllers
         [Route("api/resources/")]
         public async Task<HttpResponseMessage> Post(IdmResource resource)
         {
-            var resourceResult = await Repo.Post(resource);
+            var resourceResult = await Repo.Create(resource);
 
             HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, resourceResult);
             response.Headers.Location = new Uri(Request.RequestUri.OriginalString + "/api/resources/" + resourceResult.ObjectID);

@@ -19,6 +19,11 @@ namespace IdmApi.DAL
             _idmNet = idmNet;
         }
 
+        public Task<PagedSearchResults> GetPagedResults(SearchCriteria criteria, int pageSize)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public async Task<IdmResource> GetById(string id, List<string> @select)
         {
             return await _idmNet.GetAsync(id, @select);
@@ -29,13 +34,13 @@ namespace IdmApi.DAL
             return await _idmNet.GetCountAsync(filter);
         }
 
-        public async Task<IEnumerable<IdmResource>> GetByFilter(SearchCriteria criteria)
+        public async Task<IEnumerable<IdmResource>> GetByFilter(SearchCriteria criteria, int pageSize)
         {
-            var searchResults = await _idmNet.SearchAsync(criteria);
+            var searchResults = await _idmNet.SearchAsync(criteria, pageSize);
             return searchResults;
         }
 
-        public async Task<IdmResource> Post(IdmResource resource)
+        public async Task<IdmResource> Create(IdmResource resource)
         {
             var result = await _idmNet.PostAsync(resource);
             return result;
