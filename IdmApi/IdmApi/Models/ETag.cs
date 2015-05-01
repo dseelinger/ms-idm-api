@@ -1,6 +1,10 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
 using IdmNet.Models;
 using IdmNet.SoapModels;
+using Microsoft.Practices.ObjectBuilder2;
 
 namespace IdmApi.Models
 {
@@ -24,9 +28,15 @@ namespace IdmApi.Models
         /// Create a new ETag from a paging context
         /// </summary>
         /// <param name="pagingContext">The PagingContext to be retrieved in the next pull.</param>
-        public ETag(PagingContext pagingContext)
+        public ETag(PagingContext pagingContext) : this()
         {
-            throw new System.NotImplementedException();
+            CurrentIndex = pagingContext.CurrentIndex;
+            EnumerationDirection = pagingContext.EnumerationDirection;
+            Expires = pagingContext.Expires;
+            Filter = pagingContext.Filter;
+            Select = pagingContext.Selection.JoinStrings(",");
+            SortingDialect = pagingContext.Sorting.Dialect;
+            SortingAttributes = (from sa in pagingContext.Sorting.SortingAttributes select sa.AttributeName + ':' + sa.Ascending).JoinStrings(",");
         }
 
         /// <summary>
@@ -41,6 +51,75 @@ namespace IdmApi.Models
             if (resource.Creator == null)
                 return;
             Creator = resource.Creator;
+        }
+
+        /// <summary>
+        /// Object Type (can only be Group)
+        /// </summary>
+        [Required]
+        public override string ObjectType
+        {
+            get { return GetAttrValue("ObjectType"); }
+            set
+            {
+                if (value != ForcedObjType)
+                    throw new InvalidOperationException("Object Type of Person can only be 'Person'");
+                SetAttrValue("ObjectType", value);
+            }
+        }
+
+        /// <summary>
+        /// Current Index in the paging "session"
+        /// </summary>
+        public int? CurrentIndex 
+        {
+            get { return AttrToInteger("CurrentIndex"); }
+            set { SetAttrValue("CurrentIndex", value.ToString()); }
+        }
+
+        /// <summary>
+        /// Enumeration Direction (Forwards|Backwards)
+        /// </summary>
+        public string EnumerationDirection
+        {
+            get { return GetAttrValue("EnumerationDirection"); }
+            set { SetAttrValue("EnumerationDirection", value); }
+        }
+
+        /// <summary>
+        /// Always some string time millenia in the far future
+        /// </summary>
+        public string Expires
+        {
+            get { return GetAttrValue("Expires"); }
+            set { SetAttrValue("Expires", value); }
+        }
+
+        /// <summary>
+        /// XPath Filter for the original Search
+        /// </summary>
+        public string Filter
+        {
+            get { return GetAttrValue("Filter"); }
+            set { SetAttrValue("Filter", value); }
+        }
+
+        public string Select
+        {
+            get { return GetAttrValue("Select"); }
+            set { SetAttrValue("Select", value); }
+        }
+
+        public string SortingDialect
+        {
+            get { return GetAttrValue("SortingDialect"); }
+            set { SetAttrValue("SortingDialect", value); }
+        }
+
+        public string SortingAttributes
+        {
+            get { return GetAttrValue("SortingAttributes"); }
+            set { SetAttrValue("SortingAttributes", value); }
         }
     }
 }

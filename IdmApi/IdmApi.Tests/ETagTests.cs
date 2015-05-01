@@ -1,6 +1,9 @@
 ﻿using IdmApi.Models;
 using IdmNet.Models;
+using IdmNet.SoapModels;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+// ReSharper disable ObjectCreationAsStatement
 
 namespace IdmApi.Tests
 {
@@ -33,50 +36,71 @@ namespace IdmApi.Tests
             Assert.AreEqual("myCreator", it.Creator.DisplayName);
         }
 
-    //    [TestMethod]
-    //    public void It_has_a_constructor_that_takes_an_IdmResource()
-    //    {
-    //        var baseClass = new SecurityIdentifierResource
-    //        {
-    //            DisplayName = "Group DisplayName",
-    //            Email = "a@b.com",
-    //            Creator = new Person { DisplayName = "Creator Name", ObjectID = "Creator ObjectID" },
-    //            DomainConfiguration = new IdmResource { DisplayName = "My Domain Config", ObjectID = "Domain Config ObjectID" }
+        [TestMethod]
+        public void It_has_a_constructor_that_takes_a_pagingContext()
+        {
+            // Arrange
+            var pagingContext = new PagingContext
+            {
+                CurrentIndex = 10,
+                EnumerationDirection = "Forwards",
+                Expires = "sometime in the distant future",
+                Filter = "/ConstantSpecifier",
+                Selection = new[] {"DisplayName", "Name"},
+                Sorting =
+                    new Sorting
+                    {
+                        Dialect = "The Only Dialect",
+                        SortingAttributes =
+                            new[]
+                            {
+                                new SortingAttribute {Ascending = true, AttributeName = "SomeGroupingAttribute"},
+                                new SortingAttribute {Ascending = false, AttributeName = "SomeUniqueAttribute"}
+                            }
+                    }
+            };
 
-    //        };
-    //        IdmResource idmResource = baseClass;
-    //        var it = new Group(idmResource);
+            // Act
+            var it = new ETag(pagingContext);
 
-    //        Assert.AreEqual("Group", it.ObjectType);
-    //        Assert.AreEqual("Group DisplayName", it.DisplayName);
-    //        Assert.AreEqual("a@b.com", it.Email);
-    //        Assert.AreEqual("Creator Name", it.Creator.DisplayName);
-    //        Assert.AreEqual("My Domain Config", it.DomainConfiguration.DisplayName);
-    //    }
+            // Assert
+            Assert.AreEqual("ETag", it.ObjectType);
+            Assert.AreEqual(10, it.CurrentIndex);
+            Assert.AreEqual("Forwards", it.EnumerationDirection);
+            Assert.AreEqual("sometime in the distant future", it.Expires);
+            Assert.AreEqual("/ConstantSpecifier", it.Filter);
+            Assert.AreEqual("DisplayName,Name", it.Select);
+            Assert.AreEqual("The Only Dialect", it.SortingDialect);
+            Assert.AreEqual("SomeGroupingAttribute:True,SomeUniqueAttribute:False", it.SortingAttributes);
+        }
 
-    //    [TestMethod]
-    //    [ExpectedException(typeof(InvalidOperationException))]
-    //    public void It_throws_when_you_try_to_set_ObjectType_to_anything_other_than_Person()
-    //    {
-    //        new Group { ObjectType = "foo" };
-    //    }
 
-    //    [TestMethod]
-    //    public void It_returns_null_for_not_present_properties()
-    //    {
-    //        var it = new Group();
+        // Convert to PagingContext
 
-    //        Assert.IsNull(it.ComputedMember);
-    //        Assert.IsNull(it.DisplayedOwner);
-    //        Assert.IsNull(it.ExplicitMember);
-    //        Assert.IsNull(it.Filter);
-    //        Assert.IsNull(it.MembershipAddWorkflow);
-    //        Assert.IsNull(it.MembershipLocked);
-    //        Assert.IsNull(it.Owner);
-    //        Assert.IsNull(it.Scope);
-    //        Assert.IsNull(it.Temporal);
-    //        Assert.IsNull(it.msidmDeferredEvaluation);
-    //    }
+
+        //[TestMethod]
+        //[ExpectedException(typeof(InvalidOperationException))]
+        //public void It_throws_when_you_try_to_set_ObjectType_to_anything_other_than_Person()
+        //{
+        //    new ETag { ObjectType = "foo" };
+        //}
+
+        //[TestMethod]
+        //public void It_returns_null_for_not_present_properties()
+        //{
+        //    var it = new ETag();
+
+        //    Assert.IsNull(it.ComputedMember);
+        //    Assert.IsNull(it.DisplayedOwner);
+        //    Assert.IsNull(it.ExplicitMember);
+        //    Assert.IsNull(it.Filter);
+        //    Assert.IsNull(it.MembershipAddWorkflow);
+        //    Assert.IsNull(it.MembershipLocked);
+        //    Assert.IsNull(it.Owner);
+        //    Assert.IsNull(it.Scope);
+        //    Assert.IsNull(it.Temporal);
+        //    Assert.IsNull(it.msidmDeferredEvaluation);
+        //}
 
     //    [TestMethod]
     //    public void It_can_set_and_get_bool_properties()
