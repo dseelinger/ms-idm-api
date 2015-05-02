@@ -121,5 +121,10 @@ namespace IdmApi.Models
             get { return GetAttrValue("SortingAttributes"); }
             set { SetAttrValue("SortingAttributes", value); }
         }
+
+        public PagingContext ToPagingContext()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
