@@ -43,7 +43,9 @@ namespace IdmApi.Tests
                 }
             };
 
-            var it = new ResourcesController(repo);
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
 
             var result = await it.GetByFilter(filter);
             var json = await result.Content.ReadAsStringAsync();
@@ -73,7 +75,9 @@ namespace IdmApi.Tests
                 }
             };
 
-            var it = new ResourcesController(repo);
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
 
             var result = await it.GetByFilter(filter, "DisplayName,Name");
 
@@ -103,7 +107,9 @@ namespace IdmApi.Tests
                 }
             };
 
-            var it = new ResourcesController(repo);
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
 
             var result = await it.GetByFilter(filter, "*");
 
@@ -137,7 +143,9 @@ namespace IdmApi.Tests
                 }
             };
 
-            var it = new ResourcesController(repo);
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
 
             var result = await it.GetByFilter(filter, "*", "BoundObjectType:Ascending,BoundAttributeType:Descending");
 
@@ -311,7 +319,9 @@ namespace IdmApi.Tests
                 //}
             };
 
-            var it = new ResourcesController(repo);
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
 
             var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
 

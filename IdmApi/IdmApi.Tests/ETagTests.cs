@@ -74,56 +74,54 @@ namespace IdmApi.Tests
             Assert.AreEqual("SomeGroupingAttribute:True,SomeUniqueAttribute:False", it.SortingAttributes);
         }
 
-        [TestMethod]
-        public void It_can_convert_to_a_pagingContext()
-        {
-            // Arrange
-            var expectedContext = new PagingContext
-            {
-                CurrentIndex = 10,
-                EnumerationDirection = "Forwards",
-                Expires = "sometime in the distant future",
-                Filter = "/ConstantSpecifier",
-                Selection = new[] { "DisplayName", "Name" },
-                Sorting =
-                    new Sorting
-                    {
-                        Dialect = "The Only Dialect",
-                        SortingAttributes =
-                            new[]
-                            {
-                                new SortingAttribute {Ascending = true, AttributeName = "SomeGroupingAttribute"},
-                                new SortingAttribute {Ascending = false, AttributeName = "SomeUniqueAttribute"}
-                            }
-                    }
-            };
-            var it = new ETag
-            {
-                Filter = expectedContext.Filter,
-                SortingAttributes = "SomeGroupingAttribute:True,SomeUniqueAttribute:False",
-                CurrentIndex = 10,
-                EnumerationDirection = "Forwards",
-                Expires = expectedContext.Expires,
-                Select = "DisplayName,Name",
-                SortingDialect = "The Only Dialect"
-            };
+        //[TestMethod]
+        //public void It_can_convert_to_a_pagingContext()
+        //{
+        //    // Arrange
+        //    var expectedContext = new PagingContext
+        //    {
+        //        CurrentIndex = 10,
+        //        EnumerationDirection = "Forwards",
+        //        Expires = "sometime in the distant future",
+        //        Filter = "/ConstantSpecifier",
+        //        Selection = new[] { "DisplayName", "Name" },
+        //        Sorting =
+        //            new Sorting
+        //            {
+        //                Dialect = "The Only Dialect",
+        //                SortingAttributes =
+        //                    new[]
+        //                    {
+        //                        new SortingAttribute {Ascending = true, AttributeName = "SomeGroupingAttribute"},
+        //                        new SortingAttribute {Ascending = false, AttributeName = "SomeUniqueAttribute"}
+        //                    }
+        //            }
+        //    };
+        //    var it = new ETag
+        //    {
+        //        Filter = expectedContext.Filter,
+        //        SortingAttributes = "SomeGroupingAttribute:True,SomeUniqueAttribute:False",
+        //        CurrentIndex = 10,
+        //        EnumerationDirection = "Forwards",
+        //        Expires = expectedContext.Expires,
+        //        Select = "DisplayName,Name",
+        //        SortingDialect = "The Only Dialect"
+        //    };
 
 
-            // Act
-            PagingContext result = it.ToPagingContext();
+        //    // Act
+        //    PagingContext result = it.ToPagingContext();
 
-            // Assert
-            Assert.AreEqual(10, result.CurrentIndex);
-            Assert.AreEqual("Forwards", result.EnumerationDirection);
-            Assert.AreEqual("sometime in the distant future", result.Expires);
-            Assert.AreEqual("/ConstantSpecifier", result.Filter);
-            Assert.AreEqual("DisplayName", result.Selection[0]);
-            Assert.AreEqual("The Only Dialect", result.Sorting.Dialect);
-            Assert.AreEqual("SomeGroupingAttribute", result.Sorting.SortingAttributes[0].AttributeName);
-        }
+        //    // Assert
+        //    Assert.AreEqual(10, result.CurrentIndex);
+        //    Assert.AreEqual("Forwards", result.EnumerationDirection);
+        //    Assert.AreEqual("sometime in the distant future", result.Expires);
+        //    Assert.AreEqual("/ConstantSpecifier", result.Filter);
+        //    Assert.AreEqual("DisplayName", result.Selection[0]);
+        //    Assert.AreEqual("The Only Dialect", result.Sorting.Dialect);
+        //    Assert.AreEqual("SomeGroupingAttribute", result.Sorting.SortingAttributes[0].AttributeName);
+        //}
 
-
-        // Convert to PagingContext
 
 
 
