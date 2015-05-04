@@ -280,79 +280,47 @@ namespace IdmApi.Tests
             Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
         }
 
-        [TestMethod]
-        public async Task T010_It_can_do_a_search_and_return_the_first_page_of_results_and_info_on_retrieving_subsequent_pages_if_any()
-        {
-            const string filter = "/ConstantSpecifier";
-            PagedSearchResults pagedResults = new PagedSearchResults 
-            {
-                EndOfSequence = null,
-                PagingContext =
-                    new PagingContext
-                    {
-                        CurrentIndex = 25,
-                        EnumerationDirection = "Forwards", 
-                        Expires = "some time in the distant future",
-                        Filter = "/ConstantSpecifier",
-                        Selection = new[] {"DisplayName"},
-                        Sorting = new Sorting()
-                    },
-                Items = new object(),
-                Results = new List<IdmResource>
-                {
-                    new IdmResource(),
-                    new IdmResource(),
-                    new IdmResource()
-                }
-            };
+        //[TestMethod]
+        //public async Task T010_It_can_do_a_search_and_return_the_first_page_of_results_and_info_on_retrieving_subsequent_pages_if_any()
+        //{
+        //    const string filter = "/ConstantSpecifier";
+        //    PagedSearchResults pagedResults = new PagedSearchResults 
+        //    {
+        //        EndOfSequence = null,
+        //        PagingContext =
+        //            new PagingContext
+        //            {
+        //                CurrentIndex = 25,
+        //                EnumerationDirection = "Forwards", 
+        //                Expires = "some time in the distant future",
+        //                Filter = "/ConstantSpecifier",
+        //                Selection = new[] {"DisplayName"},
+        //                Sorting = new Sorting()
+        //            },
+        //        Items = new object(),
+        //        Results = new List<IdmResource>
+        //        {
+        //            new IdmResource(),
+        //            new IdmResource(),
+        //            new IdmResource()
+        //        }
+        //    };
 
-            var repo = new StubIRepository 
-            {
-                //GetByFilterSearchCriteriaInt32Bool = (criteria, pageSize, doPagedSearch) =>
-                //{
-                //    Assert.AreEqual(1, criteria.Sorting.SortingAttributes.Count());
-                //    Assert.IsTrue(criteria.Sorting.SortingAttributes[0].Ascending);
-                //    Assert.AreEqual("DisplayName", criteria.Sorting.SortingAttributes[0].AttributeName);
-                //    Assert.AreEqual(2, criteria.Selection.Count);
-                //    Assert.AreEqual(filter, criteria.Filter.Query);
-                //    return Task.FromResult((IEnumerable<IdmResource>)resources);
-                //}
-            };
+        //    var repo = new StubIRepository 
+        //    {
+        //        GetPagedResultsSearchCriteriaInt32 = (criteria, pageSize) =>
+        //        {
+        //            Assert.AreEqual(33, pageSize);
+        //            return Task.FromResult(pagedResults);
+        //        }
+        //    };
 
-            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
-            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
-            it.Request.RequestUri = new Uri("http://myserver");
+        //    var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+        //    it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+        //    it.Request.RequestUri = new Uri("http://myserver");
 
-            var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
-
-            //Assert.AreEqual(3, result.Count());
-
-
-
-            //// Arrange
-            //var it = IdmNetClientFactory.BuildClient();
-            //var criteria = new SearchCriteria("/ObjectTypeDescription");
-            //criteria.Selection.Add("DisplayName");
-
-            //// Act
-            //PagedSearchResults result = await it.GetPagedResultsAsync(criteria, 5);
-
-            //// Assert
-            //Assert.AreEqual("/ObjectTypeDescription", result.PagingContext.Filter);
-            //Assert.AreEqual(5, result.PagingContext.CurrentIndex);
-            //Assert.AreEqual("Forwards", result.PagingContext.EnumerationDirection);
-            //Assert.AreEqual("9999-12-31T23:59:59.9999999", result.PagingContext.Expires);
-            //Assert.AreEqual("ObjectID", result.PagingContext.Selection[0]);
-            //Assert.AreEqual("ObjectType", result.PagingContext.Selection[1]);
-            //Assert.AreEqual("DisplayName", result.PagingContext.Selection[2]);
-            //Assert.AreEqual("DisplayName", result.PagingContext.Sorting.SortingAttributes[0].AttributeName);
-            //Assert.AreEqual(true, result.PagingContext.Sorting.SortingAttributes[0].Ascending);
-
-            //Assert.AreEqual("ObjectTypeDescription", result.Results[0].ObjectType);
-            //Assert.AreEqual("Activity Information Configuration", result.Results[0].DisplayName);
-            //Assert.AreEqual("Binding Description", result.Results[4].DisplayName);
-
-        }
+        //    var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
+        //}
 
 
         // ETags endpoint

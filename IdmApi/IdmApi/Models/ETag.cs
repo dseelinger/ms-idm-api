@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -124,7 +125,29 @@ namespace IdmApi.Models
 
         public PagingContext ToPagingContext()
         {
-            throw new NotImplementedException();
+            var sortAttrs =
+                SortingAttributes.Split(',').Select(sort => sort.Split(':')).Select(sortParts => new SortingAttribute
+                {
+                    AttributeName = sortParts[0],
+                    Ascending = Boolean.Parse(sortParts[1])
+                }).ToArray();
+
+
+            var returnVal = new PagingContext
+            {
+                CurrentIndex = CurrentIndex ?? 50,
+                EnumerationDirection = EnumerationDirection,
+                Expires = Expires,
+                Filter = Filter,
+                Selection = Select.Split(','),
+                Sorting = new Sorting
+                {
+                    Dialect = SortingDialect,
+                    SortingAttributes = sortAttrs
+                }
+            };
+
+            return returnVal;
         }
     }
 }
