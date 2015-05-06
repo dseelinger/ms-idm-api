@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
 using IdmNet.Models;
 using IdmNet.SoapModels;
 using Microsoft.Practices.ObjectBuilder2;
@@ -105,24 +103,37 @@ namespace IdmApi.Models
             set { SetAttrValue("Filter", value); }
         }
 
+        /// <summary>
+        /// Comma separated list of Attribute names to return
+        /// </summary>
         public string Select
         {
             get { return GetAttrValue("Select"); }
             set { SetAttrValue("Select", value); }
         }
 
+        /// <summary>
+        /// Sorting Dialect - never changes
+        /// </summary>
         public string SortingDialect
         {
             get { return GetAttrValue("SortingDialect"); }
             set { SetAttrValue("SortingDialect", value); }
         }
 
+        /// <summary>
+        /// Comma-separated list of colon separated tuple of "Attribute Name" and "Ascending" (bool)
+        /// </summary>
         public string SortingAttributes
         {
             get { return GetAttrValue("SortingAttributes"); }
             set { SetAttrValue("SortingAttributes", value); }
         }
 
+        /// <summary>
+        /// Convert this to a Paging Context
+        /// </summary>
+        /// <returns></returns>
         public PagingContext ToPagingContext()
         {
             var sortAttrs =
