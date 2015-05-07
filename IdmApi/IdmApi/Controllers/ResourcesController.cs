@@ -77,7 +77,8 @@ namespace IdmApi.Controllers
                 if (results.EndOfSequence == null)
                 {
                     
-                    var etag = CreateETag(results.PagingContext);
+                    var etag = await CreateETag(results.PagingContext);
+
                     response.Headers.Add("x-idm-next-link", Request.RequestUri.OriginalString + "/api/etags/" + etag);
                 }
             }
@@ -90,16 +91,16 @@ namespace IdmApi.Controllers
             return response;
         }
 
-        private string CreateETag(PagingContext pagingContext)
+        private async Task<string> CreateETag(PagingContext pagingContext)
         {
-            if (EtagObjectTypeDoesNotExist())
+            if (await EtagObjectTypeDoesNotExist())
             {
                 CreateEtagObjectType();
             }
             var newEtag = new ETag(pagingContext);
-            var idmResource = Repo.Create(newEtag);
+            var idmResource = await Repo.Create(newEtag);
 
-            return newEtag.ObjectID;
+            return idmResource.ObjectID;
         }
 
         private void CreateEtagObjectType()
@@ -107,9 +108,10 @@ namespace IdmApi.Controllers
             throw new NotImplementedException();
         }
 
-        private bool EtagObjectTypeDoesNotExist()
+        private async Task<bool> EtagObjectTypeDoesNotExist()
         {
-            throw new NotImplementedException();
+            var searchResults = await Repo.GetByFilter(new SearchCriteria("/ObjectTypeDescription[Name='ETag']"), 1);
+            return searchResults == null || !searchResults.Any();
         }
 
 
