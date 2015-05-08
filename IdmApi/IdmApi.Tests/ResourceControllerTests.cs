@@ -333,7 +333,7 @@ namespace IdmApi.Tests
                 {
                     createCallCount++;
                     Assert.AreEqual("ETag", resource.ObjectType);
-                    return Task.FromResult(new IdmResource{ObjectID = "foo"});
+                    return Task.FromResult(new IdmResource { ObjectID = "foo" });
                 }
 
             };
@@ -344,7 +344,7 @@ namespace IdmApi.Tests
 
             // Act
             var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
-            
+
             // Assert
             Assert.AreEqual(1, pagedResultsCallCount);
             Assert.AreEqual(1, filterCallCount);
@@ -647,6 +647,80 @@ namespace IdmApi.Tests
             HttpResponseMessage result = await it.PutChanges("foo", changes1);
 
             Assert.AreEqual(HttpStatusCode.NoContent, result.StatusCode);
+        }
+
+
+        [TestMethod]
+        public async Task It_can_do_a_search_and_return_the_first_page_of_results_and_info_on_retrieving_subsequent_pages_even_if_ETag_doesnt_exist_in_FIM()
+        {
+            // Arrange
+            const string filter = "/ConstantSpecifier";
+            PagedSearchResults pagedResults = new PagedSearchResults
+            {
+                EndOfSequence = null,
+                PagingContext =
+                    new PagingContext
+                    {
+                        CurrentIndex = 25,
+                        EnumerationDirection = "Forwards",
+                        Expires = "some time in the distant future",
+                        Filter = "/ConstantSpecifier",
+                        Selection = new[] { "DisplayName" },
+                        Sorting = new Sorting()
+                    },
+                Items = new object(),
+                Results = new List<IdmResource>
+                {
+                    new IdmResource(),
+                    new IdmResource(),
+                    new IdmResource()
+                }
+            };
+            var etagRes = new List<IdmResource>{};
+
+            var pagedResultsCallCount = 0;
+            var filterCallCount = 0;
+            var createCallCount = 0;
+            var repo = new StubIRepository
+            {
+                GetPagedResultsSearchCriteriaInt32 = (criteria, pageSize) =>
+                {
+                    pagedResultsCallCount++;
+                    Assert.AreEqual(33, pageSize);
+                    return Task.FromResult(pagedResults);
+                },
+                GetByFilterSearchCriteriaInt32 = (criteria, pageSize) =>
+                {
+                    filterCallCount++;
+                    Assert.AreEqual(1, pageSize);
+                    Assert.AreEqual("/ObjectTypeDescription[Name='ETag']", criteria.Filter.Query);
+                    return Task.FromResult((IEnumerable<IdmResource>)etagRes);
+                },
+                CreateIdmResource = resource =>
+                {
+                    createCallCount++;
+                    Assert.AreEqual("ETag", resource.ObjectType);
+                    return Task.FromResult(new IdmResource { ObjectID = "foo" });
+                }
+
+            };
+
+            var it = new ResourcesController(repo) { Request = new HttpRequestMessage() };
+            it.Request.Properties.Add(HttpPropertyKeys.HttpConfigurationKey, new HttpConfiguration());
+            it.Request.RequestUri = new Uri("http://myserver");
+
+            // Act
+            var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
+
+            // Assert
+            Assert.AreEqual(1, pagedResultsCallCount);
+            Assert.AreEqual(1, filterCallCount);
+            Assert.AreEqual(1, createCallCount);
+            Assert.AreEqual("http://myserver/api/etags/foo", result.Headers.GetValues("x-idm-next-link").FirstOrDefault());
+
+            string json = await result.Content.ReadAsStringAsync();
+            var content = JsonConvert.DeserializeObject<PagedSearchResults>(json);
+            Assert.AreEqual(3, content.Results.Count);
         }
 
     }
