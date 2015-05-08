@@ -64,7 +64,8 @@ namespace IdmApi.Controllers
         /// </param>
         /// <response code="200">OK</response>
         [Route("api/resources/")]
-        public async Task<HttpResponseMessage> GetByFilter(string filter, string @select = null, string sort = null, int pageSize = 50, bool doPagedSearch = false)
+        public async Task<HttpResponseMessage> GetByFilter(string filter, string @select = null, string sort = null,
+            int pageSize = 50, bool doPagedSearch = false)
         {
             var attributes = (select == null) ? null : select.Split(',').ToList();
             var searchCriteria = new SearchCriteria(filter) {Selection = attributes};
@@ -73,10 +74,10 @@ namespace IdmApi.Controllers
             if (doPagedSearch)
             {
                 var results = await Repo.GetPagedResults(searchCriteria, pageSize);
-                response = Request.CreateResponse(HttpStatusCode.Created, results);
+                response = Request.CreateResponse(HttpStatusCode.OK, results);
                 if (results.EndOfSequence == null)
                 {
-                    
+
                     var etag = await CreateETag(results.PagingContext);
 
                     response.Headers.Add("x-idm-next-link", Request.RequestUri.OriginalString + "/api/etags/" + etag);
@@ -85,35 +86,11 @@ namespace IdmApi.Controllers
             else
             {
                 var results = await Repo.GetByFilter(searchCriteria, pageSize);
-                response = Request.CreateResponse(HttpStatusCode.Created, results);
+                response = Request.CreateResponse(HttpStatusCode.OK, results);
             }
 
             return response;
         }
-
-        private async Task<string> CreateETag(PagingContext pagingContext)
-        {
-            if (await EtagObjectTypeDoesNotExist())
-            {
-                CreateEtagObjectType();
-            }
-            var newEtag = new ETag(pagingContext);
-            var idmResource = await Repo.Create(newEtag);
-
-            return idmResource.ObjectID;
-        }
-
-        private void CreateEtagObjectType()
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<bool> EtagObjectTypeDoesNotExist()
-        {
-            var searchResults = await Repo.GetByFilter(new SearchCriteria("/ObjectTypeDescription[Name='ETag']"), 1);
-            return searchResults == null || !searchResults.Any();
-        }
-
 
         /// <summary>
         /// Get a resource by its ID
@@ -173,7 +150,8 @@ namespace IdmApi.Controllers
             var resourceResult = await Repo.Create(resource);
 
             HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, resourceResult);
-            response.Headers.Location = new Uri(Request.RequestUri.OriginalString + "/api/resources/" + resourceResult.ObjectID);
+            response.Headers.Location =
+                new Uri(Request.RequestUri.OriginalString + "/api/resources/" + resourceResult.ObjectID);
 
             return response;
         }
@@ -241,7 +219,8 @@ namespace IdmApi.Controllers
             var result = await Repo.PostAttribute(id, attribute, attributeValue);
 
             HttpResponseMessage response = Request.CreateResponse(HttpStatusCode.Created, result);
-            response.Headers.Location = new Uri(string.Format("{0}/api/resources/{1}/{2}", Request.RequestUri.OriginalString, id, attribute));
+            response.Headers.Location =
+                new Uri(string.Format("{0}/api/resources/{1}/{2}", Request.RequestUri.OriginalString, id, attribute));
 
             return response;
         }
@@ -369,5 +348,186 @@ namespace IdmApi.Controllers
             }
         }
 
+
+        private async Task<string> CreateETag(PagingContext pagingContext)
+        {
+            if (await EtagObjectTypeDoesNotExist())
+            {
+                await CreateEtagObjectType();
+            }
+            var newEtag = new ETag(pagingContext);
+            var idmResource = await Repo.Create(newEtag);
+
+            return idmResource.ObjectID;
+        }
+
+        private async Task CreateEtagObjectType()
+        {
+            // Create Object Type
+            var etagObjType = await CreateETagObjType();
+
+            // Create Attribute Types
+            var attributeTypes = await CreateETagAttributes();
+            var filterResource =
+                (await Repo.GetByFilter(new SearchCriteria("/AttributeTypeDescription[Name='Filter']"), 1)).First();
+            var filterAttrType = new AttributeTypeDescription(filterResource);
+            attributeTypes.Add("Filter", filterAttrType);
+
+            // Create Bindings
+            await CreateETagBindings(attributeTypes, etagObjType);
+        }
+
+        private async Task CreateETagBindings(Dictionary<string, AttributeTypeDescription> attributeTypes, ObjectTypeDescription etagObjType)
+        {
+            var bindingInfo = new[]
+            {
+                new {AttrName = "CurrentIndex", Required = true},
+                new {AttrName = "EnumerationDirection", Required = true},
+                new {AttrName = "Expires", Required = true},
+                new {AttrName = "Filter", Required = true},
+                new {AttrName = "Select", Required = false},
+                new {AttrName = "SortingDialect", Required = true},
+                new {AttrName = "SortingAttributes", Required = false},
+            };
+
+            foreach (var info in bindingInfo)
+            {
+                BindingDescription binding = new BindingDescription
+                {
+                    BoundAttributeType = attributeTypes[info.AttrName],
+                    BoundObjectType = etagObjType,
+                    Description = attributeTypes[info.AttrName].Description,
+                    DisplayName = String.Format("REST API binding: ETag Bound with {0}", info.AttrName),
+                    ObjectType = "BindingDescription",
+                    Required = info.Required
+                };
+                await Repo.Create(binding);
+            }
+        }
+
+        private async Task<Dictionary<string, AttributeTypeDescription>> CreateETagAttributes()
+        {
+            var attributeTypes = new Dictionary<string, AttributeTypeDescription>();
+
+            foreach (var item in AttributeTemplates)
+            {
+                var attrType = await CreateAttrType(item.Value);
+                attributeTypes.Add(item.Key, attrType);
+            }
+            return attributeTypes;
+        }
+
+        private async Task<ObjectTypeDescription> CreateETagObjType()
+        {
+            var etagObjType = new ObjectTypeDescription
+            {
+                Description =
+                    "ETag - contains PagedSearch information needed for the REST API to continue into the next page of a paged search",
+                DisplayName = "ETag",
+                Name = "ETag",
+                ObjectType = "ObjectTypeDescription"
+            };
+            var objTypeResource = await Repo.Create(etagObjType);
+            return etagObjType;
+        }
+
+        private async Task<AttributeTypeDescription> CreateAttrType(AttributeTypeDescription attributeTemplate)
+        {
+            var attrTypeAsResource = await Repo.Create(attributeTemplate);
+            return new AttributeTypeDescription(attrTypeAsResource);
+        }
+
+
+        private async Task<bool> EtagObjectTypeDoesNotExist()
+        {
+            var searchResults = await Repo.GetByFilter(new SearchCriteria("/ObjectTypeDescription[Name='ETag']"), 1);
+            return searchResults == null || !searchResults.Any();
+        }
+
+
+
+
+        private static readonly Dictionary<string, AttributeTypeDescription> AttributeTemplates = new Dictionary
+            <string, AttributeTypeDescription>
+        {
+            {
+                "CurrentIndex",
+                new AttributeTypeDescription
+                {
+                    DataType = "Integer",
+                    Description =
+                        "Current index in the search process",
+                    DisplayName = "CurrentIndex",
+                    Multivalued = false,
+                    Name = "CurrentIndex",
+                    ObjectType = "AttributeTypeDescription",
+                }
+            },
+            {
+                "EnumerationDirection",
+                new AttributeTypeDescription
+                {
+                    DataType = "String",
+                    Description =
+                        "Direction for the enumeration.  Never seen it anything other than 'Forwards'",
+                    DisplayName = "EnumerationDirection",
+                    Multivalued = false,
+                    Name = "EnumerationDirection",
+                    ObjectType = "AttributeTypeDescription",
+                }
+            },
+            {
+                "Expires",
+                new AttributeTypeDescription
+                {
+                    DataType = "String",
+                    Description =
+                        "Theoretical date when the enumeration expires.  Never seen it anything other than the far distant (millenia) in the future",
+                    DisplayName = "Expires",
+                    Multivalued = false,
+                    Name = "Expires",
+                    ObjectType = "AttributeTypeDescription",
+                }
+            },
+            {
+                "Select",
+                new AttributeTypeDescription
+                {
+                    DataType = "String",
+                    Description =
+                        "Comma-separated list of attributes to be retrieved in the search",
+                    DisplayName = "Select",
+                    Multivalued = false,
+                    Name = "Select",
+                    ObjectType = "AttributeTypeDescription",
+                }
+            },
+            {
+                "SortingDialect",
+                new AttributeTypeDescription
+                {
+                    DataType = "String",
+                    Description =
+                        "Always the same value returned from the initial enumeration",
+                    DisplayName = "SortingDialect",
+                    Multivalued = false,
+                    Name = "SortingDialect",
+                    ObjectType = "AttributeTypeDescription",
+                }
+            },
+            {
+                "SortingAttributes",
+                new AttributeTypeDescription
+                {
+                    DataType = "String",
+                    Description =
+                        "Comma-separated list of colon separated tuple of AttributeName:Boolean, where the boolean, if true, indicates that the sort is ascending for this attrbiute",
+                    DisplayName = "SortingAttributes",
+                    Multivalued = false,
+                    Name = "SortingAttributes",
+                    ObjectType = "AttributeTypeDescription",
+                }
+            },
+        };
     }
 }

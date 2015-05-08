@@ -19,9 +19,9 @@ namespace IdmApi.DAL
             _idmNet = idmNet;
         }
 
-        public Task<PagedSearchResults> GetPagedResults(SearchCriteria criteria, int pageSize)
+        public async Task<PagedSearchResults> GetPagedResults(SearchCriteria criteria, int pageSize)
         {
-            throw new System.NotImplementedException();
+            return await _idmNet.GetPagedResultsAsync(criteria, pageSize);
         }
 
         public async Task<IdmResource> GetById(string id, List<string> @select)

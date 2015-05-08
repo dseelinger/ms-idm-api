@@ -48,6 +48,7 @@ namespace IdmApi.Tests
             it.Request.RequestUri = new Uri("http://myserver");
 
             var result = await it.GetByFilter(filter);
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             var json = await result.Content.ReadAsStringAsync();
             var resourceResult = JsonConvert.DeserializeObject<IEnumerable<IdmResource>>(json);
             Assert.AreEqual(2, resourceResult.Count());
@@ -346,6 +347,7 @@ namespace IdmApi.Tests
             var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
 
             // Assert
+            Assert.AreEqual(HttpStatusCode.OK, result.StatusCode);
             Assert.AreEqual(1, pagedResultsCallCount);
             Assert.AreEqual(1, filterCallCount);
             Assert.AreEqual(1, createCallCount);
@@ -654,7 +656,6 @@ namespace IdmApi.Tests
         public async Task It_can_do_a_search_and_return_the_first_page_of_results_and_info_on_retrieving_subsequent_pages_even_if_ETag_doesnt_exist_in_FIM()
         {
             // Arrange
-            const string filter = "/ConstantSpecifier";
             PagedSearchResults pagedResults = new PagedSearchResults
             {
                 EndOfSequence = null,
@@ -699,8 +700,21 @@ namespace IdmApi.Tests
                 CreateIdmResource = resource =>
                 {
                     createCallCount++;
-                    Assert.AreEqual("ETag", resource.ObjectType);
-                    return Task.FromResult(new IdmResource { ObjectID = "foo" });
+                    if (createCallCount == 1)
+                    {
+                        Assert.AreEqual("ObjectTypeDescription", resource.ObjectType);
+                        Assert.AreEqual("ETag", resource.GetAttrValue("Name"));
+                        return Task.FromResult(new IdmResource { ObjectID = "ETagObjectID" });
+                    }
+                    if (resource.ObjectType == "AttributeTypeDescription")
+                    {
+                        return Task.FromResult(new IdmResource { ObjectID = "AttrObjectID" + createCallCount });
+                    }
+                    if (resource.ObjectType == "BindingDescription")
+                    {
+                        return Task.FromResult(new IdmResource { ObjectID = "BindingObjectID" + createCallCount });
+                    }
+                    return Task.FromResult(new IdmResource { ObjectID = "ETagObjID" + createCallCount });
                 }
 
             };
@@ -710,13 +724,13 @@ namespace IdmApi.Tests
             it.Request.RequestUri = new Uri("http://myserver");
 
             // Act
-            var result = await it.GetByFilter(filter, pageSize: 33, doPagedSearch: true);
+            var result = await it.GetByFilter("/ConstantSpecifier", pageSize: 33, doPagedSearch: true);
 
             // Assert
             Assert.AreEqual(1, pagedResultsCallCount);
             Assert.AreEqual(1, filterCallCount);
-            Assert.AreEqual(1, createCallCount);
-            Assert.AreEqual("http://myserver/api/etags/foo", result.Headers.GetValues("x-idm-next-link").FirstOrDefault());
+            Assert.AreEqual(16, createCallCount);
+            Assert.AreEqual("http://myserver/api/etags/ETagObjID16", result.Headers.GetValues("x-idm-next-link").FirstOrDefault());
 
             string json = await result.Content.ReadAsStringAsync();
             var content = JsonConvert.DeserializeObject<PagedSearchResults>(json);
