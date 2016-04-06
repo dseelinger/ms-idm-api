@@ -1,17 +1,15 @@
-﻿using System.Web;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
 using System.Web.Http;
+using System.Web.Routing;
 using Newtonsoft.Json;
 
 namespace IdmApi
 {
-    /// <summary>
-    /// Web App
-    /// </summary>
-    public class WebApiApplication : HttpApplication
+    public class WebApiApplication : System.Web.HttpApplication
     {
-        /// <summary>
-        /// Startup method
-        /// </summary>
         protected void Application_Start()
         {
             GlobalConfiguration.Configure(WebApiConfig.Register);

@@ -1,25 +1,23 @@
-using System.IO;
-using System.Reflection;
+﻿using System.Globalization;
+using System.Linq;
 using System.Web.Http;
+using System.Web.Http.Description;
+using Swashbuckle.Application;
+using Swashbuckle.Swagger;
 using WebActivatorEx;
 using IdmApi;
-using Swashbuckle.Application;
 
 [assembly: PreApplicationStartMethod(typeof(SwaggerConfig), "Register")]
 
 namespace IdmApi
 {
-    /// <summary>
-    /// Swagger class
-    /// </summary>
     public class SwaggerConfig
     {
-        /// <summary>
-        /// Register
-        /// </summary>
         public static void Register()
         {
-            GlobalConfiguration.Configuration 
+            var thisAssembly = typeof(SwaggerConfig).Assembly;
+
+            GlobalConfiguration.Configuration
                 .EnableSwagger(c =>
                     {
                         // By default, the service root url is inferred from the request used to access the docs.
@@ -146,6 +144,11 @@ namespace IdmApi
                         // to execute the operation
                         //
                         //c.OperationFilter<AssignOAuth2SecurityRequirements>();
+                        //
+                        // Set filter to eliminate duplicate operation ids from being generated
+                        // when there are multiple operations with the same verb in the API.
+                        //
+                        c.OperationFilter<IncludeParameterNamesInOperationIdFilter>();
 
                         // Post-modify the entire Swagger document by wiring up one or more Document filters.
                         // This gives full control to modify the final SwaggerDocument. You should have a good understanding of
@@ -159,25 +162,7 @@ namespace IdmApi
                         // those comments into the generated docs and UI. You can enable this by providing the path to one or
                         // more Xml comment files.
                         //
-                        const string apiComments = @"IdmApi.XML";
-                        const string netComments = @"IdmNet.XML";
-                        var apiXmlPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + apiComments;
-                        var netXmlPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + netComments;
-                        if (!File.Exists(apiXmlPath))
-                        {
-                            apiXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\content\" + apiComments;
-                            netXmlPath = @"C:\git\ms-idm-api\IdmApi\IdmApi\content\" + netComments;
-                        }
-                        if (!File.Exists(apiXmlPath))
-                        {
-                            apiXmlPath = @"D:\home\site\wwwroot\content\" + apiComments;
-                            netXmlPath = @"D:\home\site\wwwroot\content\" + netComments;
-                        }
-                        if (File.Exists(apiXmlPath))
-                        {
-                            c.IncludeXmlComments(apiXmlPath);
-                            c.IncludeXmlComments(netXmlPath);
-                        }
+                        //c.IncludeXmlComments(GetXmlCommentsPath());
 
                         // In contrast to WebApi, Swagger 2.0 does not include the query string component when mapping a URL
                         // to an action. As a result, Swashbuckle will raise an exception if it encounters multiple actions
@@ -185,9 +170,10 @@ namespace IdmApi
                         // custom strategy to pick a winner or merge the descriptions for the purposes of the Swagger docs 
                         //
                         //c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-                    })
-                .EnableSwaggerUi(c =>
-                    {
+                        // ***** Uncomment the following to enable the swagger UI *****
+                            })
+                        .EnableSwaggerUi(c =>
+                            {
                         // Use the "InjectStylesheet" option to enrich the UI with one or more additional CSS stylesheets.
                         // The file must be included in your project as an "Embedded Resource", and then the resource's
                         // "Logical Name" is passed to the method as shown below.
@@ -205,12 +191,6 @@ namespace IdmApi
                         // for example 0 and 1.
                         //
                         //c.BooleanValues(new[] { "0", "1" });
-
-                        // By default, swagger-ui will validate specs against swagger.io's online validator and display the result
-                        // in a badge at the bottom of the page. Use these options to set a different validator URL or to disable the
-                        // feature entirely.
-                        //c.SetValidatorUrl("http://localhost/validator");
-                        //c.DisableValidator();
 
                         // Use this option to control how the Operation listing is displayed.
                         // It can be set to "None" (default), "List" (shows operations for each resource),
@@ -238,6 +218,25 @@ namespace IdmApi
                         //
                         //c.EnableOAuth2Support("test-client-id", "test-realm", "Swagger UI");
                     });
+        }
+    }
+
+    internal class IncludeParameterNamesInOperationIdFilter : IOperationFilter
+    {
+        public void Apply(Operation operation, SchemaRegistry schemaRegistry, ApiDescription apiDescription)
+        {
+            if (operation.parameters != null)
+            {
+                // Select the capitalized parameter names
+                var parameters = operation.parameters.Select(
+                    p => CultureInfo.InvariantCulture.TextInfo.ToTitleCase(p.name));
+
+                // Set the operation id to match the format "OperationByParam1AndParam2"
+                operation.operationId = string.Format(
+                    "{0}By{1}",
+                    operation.operationId,
+                    string.Join("And", parameters));
+            }
         }
     }
 }
