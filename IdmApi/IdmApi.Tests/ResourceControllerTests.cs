@@ -6,6 +6,7 @@ using System.ServiceModel.Channels;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Hosting;
+using FluentAssertions;
 using IdmApi.Controllers;
 using IdmNet.Fakes;
 using IdmNet.Models;
@@ -134,7 +135,9 @@ namespace IdmApi.Tests
             var it = new ResourcesController { Client = stub };
 
             // Act
-            var ex = await Record.ExceptionAsync(() => it.Get("/BindingDescription", "*", "BadSortValue"));
+            var exceptionAsync = Record.ExceptionAsync(() => it.Get("/BindingDescription", "*", "BadSortValue"));
+            exceptionAsync.Should().NotBeNull();
+            var ex = await exceptionAsync;
 
             // Assert
             Assert.NotNull(ex);
