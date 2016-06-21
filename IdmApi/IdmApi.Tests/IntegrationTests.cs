@@ -148,7 +148,7 @@ namespace IdmApi.Tests
         {
             // Arrange
             var objTypeRequest = new RestRequest($"{ResourceEndpoint}/fb89aefa-5ea1-47f1-8890-abe7797d6497");
-            objTypeRequest.AddParameter("select", "DisplayName,MailNickname");
+            objTypeRequest.AddParameter("select", "*");
 
             // Act
             var objTypeResponse = _client.Execute<IdmResource>(objTypeRequest);
@@ -157,6 +157,20 @@ namespace IdmApi.Tests
             var person = new Person(objTypeResponse.Data);
             person.DisplayName.Should().Be("Built-in Synchronization Account");
             person.MailNickname.Should().Be("ILMSync");
+        }
+
+        [Fact]
+        public void T007_It_can_return_the_number_of_matching_records_for_a_given_search()
+        {
+            // Arrange
+            var request = new RestRequest(ResourceEndpoint, Method.HEAD);
+            request.AddParameter("filter", "/ConstantSpecifier");
+
+            // Act
+            var response = _client.Execute(request);
+
+            // Assert
+            response.Headers.Should().Contain(h => h.Name == "x-idm-count" && h.Value.ToString() == "97");
         }
 
 

@@ -137,6 +137,7 @@ namespace IdmApi.Tests
             // Act
             var exceptionAsync = Record.ExceptionAsync(() => it.Get("/BindingDescription", "*", "BadSortValue"));
             exceptionAsync.Should().NotBeNull();
+            // ReSharper disable once PossibleNullReferenceException
             var ex = await exceptionAsync;
 
             // Assert
